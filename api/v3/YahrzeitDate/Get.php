@@ -34,21 +34,28 @@ function civicrm_api3_yahrzeit_date_Get($params) {
   		throw new CRM_Core_Exception(/*errorMessage*/ '\'mourner_contact_ids\' is a required parm.', /*errorCode*/ 1234);
   	}
  
-  	 if( strlen($mourner_contact_ids) > 0 ){
-  	 	
+  	 $returnValues = [];
+  	 // These go into SQL below.
+  	 $mourner_contact_ids = str_replace(' ', '', (string) $mourner_contact_ids);
+  	 if ($mourner_contact_ids !== '' && !CRM_Utils_Rule::commaSeparatedIntegers($mourner_contact_ids)) {
+  	   throw new CRM_Core_Exception('mourner_contact_ids must be a comma-separated list of contact IDs.');
+  	 }
+
+  	 if( strlen((string) $mourner_contact_ids) > 0 ){
+
   	 	$mourner_cids_for_sql = $mourner_contact_ids;
-  	    $iyear = $params['year'];
-  	    $imonth  = $params['month'];
-  	    $iday = $params['day'];
+  	    $iyear = (int) $params['year'];
+  	    $imonth  = isset($params['month']) && $params['month'] !== '' ? (int) $params['month'] : '';
+  	    $iday = isset($params['day']) && $params['day'] !== '' ? (int) $params['day'] : '';
   	    
   	    
-  	    if( strlen($imonth ) > 0){
+  	    if( strlen((string) $imonth ) > 0){
   	    	$sql_month = " and month(y.yahrzeit_date)  = '$imonth'";
   	    }else{
   	    	$sql_month = "";
   	    }
   	    
-  	    if( strlen($iday ) > 0){
+  	    if( strlen((string) $iday ) > 0){
   	    	$sql_day = " and day(y.yahrzeit_date) = '$iday'";
   	    }else{
   	    	$sql_day = "";
@@ -70,7 +77,7 @@ function civicrm_api3_yahrzeit_date_Get($params) {
  			
 						
 			
-			$dao =& CRM_Core_DAO::executeQuery( $sql_str,   CRM_Core_DAO::$_nullArray ) ;
+			$dao = CRM_Core_DAO::executeQuery( $sql_str ) ;
 			    
 			$tmp_display_name = "";
 			$count = 1;

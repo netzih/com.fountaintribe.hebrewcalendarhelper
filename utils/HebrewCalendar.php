@@ -2,6 +2,12 @@
 
 class HebrewCalendar{
 
+	/**
+	 * @var string
+	 */
+	private $_systemDateFormat;
+
+
 	// Purim is in Adar or, in leap year, Adar II, which corresponds to '7' in either case.
 	// yom hazikaron needs to be shifted if it or the day after fall on a shabbat.
 	// yom haatzmaut needs to be shifted if it or the day before fall on a shabbat.
@@ -295,13 +301,13 @@ class HebrewCalendar{
 			
 			
 		if( $result['is_error'] == 0 && $result['count'] == 1){
-			$tmp_domain_address = $result['values'][0]['domain_address'];
+			$tmp_domain_address = $result['values'][0]['domain_address'] ?? NULL;
 				
 			if( is_array($tmp_domain_address)){
-				$tmp_country_id = $tmp_domain_address['country_id'];
+				$tmp_country_id = $tmp_domain_address['country_id'] ?? '';
 					
 				//CRM_Core_Error::debug("Country ID: ", $tmp_country_id);
-				if( strlen($tmp_country_id) > 0 ){
+				if( strlen((string) $tmp_country_id) > 0 ){
 					$result_country = civicrm_api3('Country', 'get', [
 							'sequential' => 1,
 							'id' => $tmp_country_id,
@@ -340,7 +346,7 @@ class HebrewCalendar{
 		// Documentation for HebCal.com REST API: https://www.hebcal.com/home/195/jewish-calendar-rest-api
 		$in_israel_crm_domain_setting = HebrewCalendar::isLocatedInIsrael();
 		
-		if(strlen($year_parm) == 4 && strlen($in_israel_crm_domain_setting) > 0 ){
+		if(strlen((string) $year_parm) == 4 && strlen((string) $in_israel_crm_domain_setting) > 0 ){
 			
 			/*
 			 * Mutually exclusive language parameter for HebCal API:
@@ -435,7 +441,7 @@ class HebrewCalendar{
 	
 	function determine_relationship_name($mourner_contact_id, $deceased_contact_id  ){
 	
-		if(strlen($mourner_contact_id) == 0){
+		if(strlen((string) $mourner_contact_id) == 0){
 			return '';
 		}
 	
@@ -459,7 +465,7 @@ class HebrewCalendar{
 		and contact_id_a = con.id
 		and rel.is_active = 1)		";
 	
-		$dao =& CRM_Core_DAO::executeQuery( $sql,   CRM_Core_DAO::$_nullArray ) ;
+		$dao = CRM_Core_DAO::executeQuery( $sql ) ;
 		$first_time = true;
 		while ( $dao->fetch( ) ) {
 	
@@ -474,7 +480,7 @@ class HebrewCalendar{
 			if($tmp_rel_api_name <> HebrewCalendar::YAHRZEIT_RELATIONSHIP_TYPE_A_B_NAME) {
 	
 				// print "<br>current label is not yahzeit, so need to clean up for return value. ";
-				if(strlen($formated_rel_name) > 0){
+				if(strlen((string) $formated_rel_name) > 0){
 					//  print "<br>  a) formatted rel name: ".$formated_rel_name;
 	
 	
@@ -761,7 +767,7 @@ class HebrewCalendar{
 	 ******************************************************************************/
 	function retrieve_sunset_or_candlelighting_times($iyear, $imonth, $iday, $sunset_or_candle){
 
-		if(strlen($iyear) < 1){
+		if(strlen((string) $iyear) < 1){
 			return 'Unknow year, cannot do sunset/candlelighting time';
 
 		}
@@ -803,7 +809,7 @@ class HebrewCalendar{
 
 
 
-			if(strlen( $error_msg) > 0){
+			if(strlen((string) $error_msg) > 0){
 				print "<br>Configuration error: ".$error_msg;
 				return "";
 
@@ -828,7 +834,7 @@ class HebrewCalendar{
 			$zenith = '';
 
 			// print "<br>sunset sql: ".$sql;
-			$dao =& CRM_Core_DAO::executeQuery( $sql,   CRM_Core_DAO::$_nullArray ) ;
+			$dao = CRM_Core_DAO::executeQuery( $sql ) ;
 
 			if ( $dao->fetch( ) ) {
 	   $latitude = $dao->geo_code_1;
@@ -849,13 +855,13 @@ class HebrewCalendar{
 
 
 			$default_zenith = 89.2;
-			if(strlen($zenith) == 0 || $zenith == 0 ){
+			if(strlen((string) $zenith) == 0 || $zenith == 0 ){
 				$zenith = $default_zenith;
 
 			}
 
 
-			if(strlen($minutes_offset) == 0){
+			if(strlen((string) $minutes_offset) == 0){
 				$minutes_offset = 0;
 
 			}
@@ -911,7 +917,7 @@ class HebrewCalendar{
 			//print "<br>time org:".$working_time_orig;
 			//print "<br>time adj:".$working_time_adj;
 
-			if(strlen($candle_offset) == 0 || $candle_offset ==0 ){
+			if(strlen((string) $candle_offset) == 0 || $candle_offset ==0 ){
 				$candle_offset = "-18";
 
 
@@ -994,10 +1000,12 @@ class HebrewCalendar{
 	
 	// This fills in parashat and holiday info
 	function fillYahrzeitParashat(&$contact_ids ){
+		// The row IDs below are collected with GROUP_CONCAT, which cuts off at 1024 bytes by default.
+		CRM_Core_DAO::executeQuery("SET SESSION group_concat_max_len = 1000000");
 		
 		
 		
-		if(strlen($contact_ids) > 0){
+		if(strlen((string) $contact_ids) > 0){
 			$sql_conids_filter = " AND deceased_contact_id  IN ( $contact_ids ) ";
 		}else{
 			$sql_conids_filter = "";
@@ -1009,7 +1017,7 @@ class HebrewCalendar{
 				"  GROUP BY yahrzeit_shabbat_morning_before
 				order by yahrzeit_shabbat_morning_before  ";
 		
-		$dao =& CRM_Core_DAO::executeQuery( $sql,   CRM_Core_DAO::$_nullArray ) ;
+		$dao = CRM_Core_DAO::executeQuery( $sql ) ;
 		
 		while ( $dao->fetch( ) ) {
 			
@@ -1025,7 +1033,7 @@ class HebrewCalendar{
 			$tmpHoliday = HebrewCalendar::getHolidayByDate($shabbat_date);
 			$tmpHolidayHebrew = HebrewCalendar::getHolidayByDateHebrew($shabbat_date);
 			
-			if(  strlen($tmpHoliday ) > 0 ){		
+			if(  strlen((string) $tmpHoliday ) > 0 ){		
 				//	$tmpParashat_cleaned = str_replace("'", "''", $tmpParashat);
 				$update_sql = "UPDATE ".HebrewCalendar::YAHRZEIT_TEMP_TABLE_NAME."
 						set shabbat_before_holiday = %1,
@@ -1037,7 +1045,7 @@ class HebrewCalendar{
 				
 				$params_a[2] =  [ $tmpHolidayHebrew, 'String' ];
 			
-				$update_dao =& CRM_Core_DAO::executeQuery( $update_sql,   $params_a ) ;
+				$update_dao = CRM_Core_DAO::executeQuery( $update_sql,   $params_a ) ;
 				$update_dao->free();
 			
 			}
@@ -1045,7 +1053,7 @@ class HebrewCalendar{
 			// getHolidayByDateHebrew
 			
 			$tmpParashat = HebrewCalendar::getParashatByDate($shabbat_date);
-			if( strlen( $tmpParashat ) > 0  ){
+			if( strlen((string) $tmpParashat ) > 0  ){
 				
 			//	$tmpParashat_cleaned = str_replace("'", "''", $tmpParashat);
 				$update_sql = "UPDATE ".HebrewCalendar::YAHRZEIT_TEMP_TABLE_NAME." 
@@ -1056,14 +1064,14 @@ class HebrewCalendar{
 				$params_a[1] =  [ $tmpParashat, 'String' ];
 				
 				
-				$update_dao =& CRM_Core_DAO::executeQuery( $update_sql,   $params_a ) ;
+				$update_dao = CRM_Core_DAO::executeQuery( $update_sql,   $params_a ) ;
 				$update_dao->free();
 				
 			}
 			
 			// Now get the Hebrew name of the parashat.
 			$tmpParashatHebrew = HebrewCalendar::getParashatByDateHebrew($shabbat_date);
-			if( strlen( $tmpParashatHebrew ) > 0 ){
+			if( strlen((string) $tmpParashatHebrew ) > 0 ){
 			
 				//	$tmpParashat_cleaned = str_replace("'", "''", $tmpParashat);
 				$update_sql = "UPDATE ".HebrewCalendar::YAHRZEIT_TEMP_TABLE_NAME." set shabbat_before_parashat_hebrew = %1
@@ -1073,7 +1081,7 @@ class HebrewCalendar{
 				$params_a[1] =  [ $tmpParashatHebrew, 'String' ];
 			
 			
-				$update_dao =& CRM_Core_DAO::executeQuery( $update_sql,   $params_a ) ;
+				$update_dao = CRM_Core_DAO::executeQuery( $update_sql,   $params_a ) ;
 				$update_dao->free();
 			
 			}
@@ -1093,7 +1101,7 @@ class HebrewCalendar{
 				 order by yahrzeit_shabbat_morning_after";
 		
 		
-		$dao =& CRM_Core_DAO::executeQuery( $sql,   CRM_Core_DAO::$_nullArray ) ;
+		$dao = CRM_Core_DAO::executeQuery( $sql ) ;
 		
 		while ( $dao->fetch( ) ) {
 				
@@ -1107,7 +1115,7 @@ class HebrewCalendar{
 			// get Holiday for Shabbat after the yahrzeit.
 			$tmpHoliday = HebrewCalendar::getHolidayByDate(  $shabbat_date);
 			$tmpHolidayHebrew = HebrewCalendar::getHolidayByDateHebrew($shabbat_date);
-			if(  strlen($tmpHoliday ) > 0 ){
+			if(  strlen((string) $tmpHoliday ) > 0 ){
 				//	$tmpParashat_cleaned = str_replace("'", "''", $tmpParashat);
 				$update_sql = "UPDATE ".HebrewCalendar::YAHRZEIT_TEMP_TABLE_NAME."
 						set shabbat_after_holiday = %1 , 
@@ -1120,26 +1128,26 @@ class HebrewCalendar{
 				
 				$params_a[2] =  [ $tmpHolidayHebrew, 'String' ];
 					
-				$update_dao =& CRM_Core_DAO::executeQuery( $update_sql,   $params_a ) ;
+				$update_dao = CRM_Core_DAO::executeQuery( $update_sql,   $params_a ) ;
 				$update_dao->free();
 					
 			}
 			
 			
 			$tmpParashat = HebrewCalendar::getParashatByDate($shabbat_date);
-			if( strlen( $tmpParashat ) > 0 ){
+			if( strlen((string) $tmpParashat ) > 0 ){
 		
 				$tmpParashat_cleaned = str_replace("'", "''", $tmpParashat);
 				$update_sql = "UPDATE ".HebrewCalendar::YAHRZEIT_TEMP_TABLE_NAME." set shabbat_after_parashat = '$tmpParashat_cleaned'
 				WHERE id IN ( ".$row_ids_raw." ) ";
-				$update_dao =& CRM_Core_DAO::executeQuery( $update_sql,   CRM_Core_DAO::$_nullArray ) ;
+				$update_dao = CRM_Core_DAO::executeQuery( $update_sql ) ;
 				$update_dao->free();
 		
 			}
 			
 			// Now get the Hebrew name of the parashat.
 			$tmpParashatHebrew = HebrewCalendar::getParashatByDateHebrew($shabbat_date);
-			if( strlen( $tmpParashatHebrew ) > 0 ){
+			if( strlen((string) $tmpParashatHebrew ) > 0 ){
 					
 				//	$tmpParashat_cleaned = str_replace("'", "''", $tmpParashat);
 				$update_sql = "UPDATE ".HebrewCalendar::YAHRZEIT_TEMP_TABLE_NAME." set shabbat_after_parashat_hebrew = %1
@@ -1149,7 +1157,7 @@ class HebrewCalendar{
 				$params_a[1] =  [ $tmpParashatHebrew, 'String' ];
 					
 					
-				$update_dao =& CRM_Core_DAO::executeQuery( $update_sql,   $params_a ) ;
+				$update_dao = CRM_Core_DAO::executeQuery( $update_sql,   $params_a ) ;
 				$update_dao->free();
 					
 			}
@@ -1169,7 +1177,7 @@ class HebrewCalendar{
 	function scrubBirthCalculatedFields( $contact_ids  ){
 		$rtn_data = [];
 		
-		if( strlen( $contact_ids) > 0){
+		if( strlen((string) $contact_ids) > 0){
 			$contactids_sql = " AND bcg.entity_id IN ( $contact_ids )";
 		
 		}else{
@@ -1192,7 +1200,7 @@ class HebrewCalendar{
 		}
 		
 		
-		if( strlen( $heb_cal_table_name) > 0){
+		if( strlen((string) $heb_cal_table_name) > 0){
 		
 		
 			$params = [
@@ -1247,7 +1255,7 @@ class HebrewCalendar{
 						
 					//$rtn_data['error_message'] = "SQL - ".$sql;
 					//return $rtn_data;
-					$dao_update =& CRM_Core_DAO::executeQuery( $sql,   CRM_Core_DAO::$_nullArray ) ;
+					$dao_update = CRM_Core_DAO::executeQuery( $sql ) ;
 					$dao_update->free();
 						
 		}else{
@@ -1263,7 +1271,7 @@ class HebrewCalendar{
 	function scrubDeceasedCalculatedFields( $contact_ids  ){
 		$rtn_data = [];
 		
-		if( strlen( $contact_ids) > 0){
+		if( strlen((string) $contact_ids) > 0){
 			$contactids_sql = " AND dcg.entity_id IN ( $contact_ids )";
 				
 		}else{
@@ -1286,7 +1294,7 @@ class HebrewCalendar{
 		}
 		
 		
-		if( strlen( $heb_cal_table_name) > 0){
+		if( strlen((string) $heb_cal_table_name) > 0){
 		
 		
 			$params = [
@@ -1341,7 +1349,7 @@ class HebrewCalendar{
 			
 			//$rtn_data['error_message'] = "SQL - ".$sql;
 			//return $rtn_data;
-			$dao_update =& CRM_Core_DAO::executeQuery( $sql,   CRM_Core_DAO::$_nullArray ) ;
+			$dao_update = CRM_Core_DAO::executeQuery( $sql ) ;
 			$dao_update->free();
 			
 		}else{
@@ -1360,7 +1368,7 @@ class HebrewCalendar{
 		$rtn = $this->createCustomCRMConfigs();
 		
 		
-		if(isset( $rtn['error_message']) && strlen($rtn['error_message']) > 0){
+		if(isset( $rtn['error_message']) && strlen((string) $rtn['error_message']) > 0){
 			
 			throw new Exception('Error creating custom CRM configs: '.$rtn['error_message']); 
 		}
@@ -1391,7 +1399,7 @@ class HebrewCalendar{
 		
 		$sql_drop = "DROP TABLE IF EXISTS ".$yahrzeit_table_name;
 		
-		$dao =& CRM_Core_DAO::executeQuery( $sql_drop,   CRM_Core_DAO::$_nullArray ) ;
+		$dao = CRM_Core_DAO::executeQuery( $sql_drop ) ;
 		$dao->free();
 		
 	}
@@ -1454,20 +1462,20 @@ class HebrewCalendar{
 		
 
 
-		$dao =& CRM_Core_DAO::executeQuery( $sql_create,   CRM_Core_DAO::$_nullArray ) ;
+		$dao = CRM_Core_DAO::executeQuery( $sql_create ) ;
 		$dao->free();
 	
                 $sql = " ALTER TABLE $yahrzeit_table_name
                                ADD UNIQUE KEY mourner_to_yah_date
                                (mourner_contact_id , deceased_contact_id , yahrzeit_date, yahrzeit_relationship_id, yahrzeit_type)  " ;
 
-		$dao =& CRM_Core_DAO::executeQuery( $sql,   CRM_Core_DAO::$_nullArray ) ;
+		$dao = CRM_Core_DAO::executeQuery( $sql ) ;
 		$dao->free();
 
 //                $sql = "ALTER TABLE $yahrzeit_table_name CHANGE `created_date` `created_date` 
 //                        TIMESTAMP on update CURRENT_TIMESTAMP NULL DEFAULT NULL";
 
-//		$dao =& CRM_Core_DAO::executeQuery( $sql,   CRM_Core_DAO::$_nullArray ) ;
+//		$dao = CRM_Core_DAO::executeQuery( $sql ) ;
 //		$dao->free();
 
 
@@ -1533,7 +1541,7 @@ class HebrewCalendar{
 			
 			
 		}else{
-			$tmp[error_message] = "Error: Could not find core contact_type 'Individual' ";
+			$tmp['error_message'] = "Error: Could not find core contact_type 'Individual' ";
 			return;
 		}
 		
@@ -2069,7 +2077,7 @@ class HebrewCalendar{
 					HebrewCalendar::RELIGIOUS_TRIBE_OPTIONS_NAME, 
 					$tribe_options_array );
 			
-			if(strlen($tribe_grp_option_id) > 0  ){
+			if(strlen((string) $tribe_grp_option_id) > 0  ){
 				$result = civicrm_api3('CustomField', 'create', [
 						'sequential' => 1,
 						'custom_group_id' => HebrewCalendar::RELIGIOUS_CUSTOM_FIELD_GROUP_NAME,
@@ -2087,7 +2095,7 @@ class HebrewCalendar{
 				]);
 				
 			}else{
-				$tmp[error_message] = "Error: Could NOT find id for the option_group named  '".
+				$tmp['error_message'] = "Error: Could NOT find id for the option_group named  '".
 				HebrewCalendar::RELIGIOUS_TRIBE_OPTIONS_NAME."' as a result, could not create the custom field for Tribe.";
 				return;
 				
@@ -2210,7 +2218,7 @@ class HebrewCalendar{
 		
 		}
 		
-		if(  strlen( $extended_birth_date_col_name) == 0 ){
+		if(  strlen((string) $extended_birth_date_col_name) == 0 ){
 			$rtn_data['error_message'] = "Could not get SQL column name for '".HebrewCalendar::EXTENDED_DATE_CUSTOM_FIELD_BIRTH_NAME."'";
 			return $rtn_data;
 		}
@@ -2219,7 +2227,7 @@ class HebrewCalendar{
 		
 		
 		
-		if( strlen( $contact_ids) > 0){
+		if( strlen((string) $contact_ids) > 0){
 			$contactids_sql = " AND c.id IN ( $contact_ids )";
 	
 		}else{
@@ -2304,7 +2312,7 @@ class HebrewCalendar{
 		 
 		 
 		$contacts_updated = 0;
-		$dao =& CRM_Core_DAO::executeQuery( $sql,   CRM_Core_DAO::$_nullArray ) ;
+		$dao = CRM_Core_DAO::executeQuery( $sql ) ;
 		while ( $dao->fetch( ) ) {
 			$contact_id = $dao->contact_id ;
 			$birth_year = $dao->birth_year;
@@ -2439,7 +2447,7 @@ class HebrewCalendar{
 			$heb_cal_table_name = "";
 		}
 		
-		if( strlen( $heb_cal_table_name) > 0){
+		if( strlen((string) $heb_cal_table_name) > 0){
 		
 		
 			$params = [
@@ -2487,10 +2495,9 @@ class HebrewCalendar{
 			}
 				
 				
-			if( strlen($col_name_next_heb_yahrzeit) > 0 && strlen($col_name_next_english_yahrzeit) > 0  ){
-				$dao_exists =& CRM_Core_DAO::executeQuery(
-						"select count(*) as count from $heb_cal_table_name where entity_id =  $deceased_contact_id ",
-						CRM_Core_DAO::$_nullArray ) ;
+			if( strlen((string) $col_name_next_heb_yahrzeit) > 0 && strlen((string) $col_name_next_english_yahrzeit) > 0  ){
+				$dao_exists = CRM_Core_DAO::executeQuery(
+						"select count(*) as count from $heb_cal_table_name where entity_id =  $deceased_contact_id ") ;
 		
 				$rec_exists = false;
 				if($dao_exists->fetch()){
@@ -2535,7 +2542,7 @@ class HebrewCalendar{
 				}
 		
 				// CRM_Core_Error::debug("Debug: Yahrzeit sql for custom fields : ", $sql );
-				$dao_update_dececased =& CRM_Core_DAO::executeQuery( $sql,   CRM_Core_DAO::$_nullArray ) ;
+				$dao_update_dececased = CRM_Core_DAO::executeQuery( $sql ) ;
 				$dao_update_dececased->free();
 		
 		
@@ -2562,7 +2569,7 @@ class HebrewCalendar{
 			$heb_cal_table_name = "";
 		}
 		
-		if( strlen( $heb_cal_table_name) > 0){
+		if( strlen((string) $heb_cal_table_name) > 0){
 		
 		
 			$params = [
@@ -2611,10 +2618,9 @@ class HebrewCalendar{
 			}
 				
 			// if all three columns exist, do sql. 	
-			if( strlen($col_name_next_heb_birthday) > 0 && strlen($col_name_earliest_barbat) > 0 && strlen( $col_name_hebrew_date_of_birth ) > 0  ){
-				$dao_exists =& CRM_Core_DAO::executeQuery(
-						"select count(*) as count from $heb_cal_table_name where entity_id =  $contact_id ",
-						CRM_Core_DAO::$_nullArray ) ;
+			if( strlen((string) $col_name_next_heb_birthday) > 0 && strlen((string) $col_name_earliest_barbat) > 0 && strlen((string) $col_name_hebrew_date_of_birth ) > 0  ){
+				$dao_exists = CRM_Core_DAO::executeQuery(
+						"select count(*) as count from $heb_cal_table_name where entity_id =  $contact_id ") ;
 				$rec_exists = false;
 				if($dao_exists->fetch()){
 					if( $dao_exists->count == "1" ){
@@ -2645,7 +2651,7 @@ class HebrewCalendar{
 		
 				
 				//CRM_Core_Error::debug("Debug: Date of birth sql for custom fields : ", $sql );
-				$dao =& CRM_Core_DAO::executeQuery( $sql,   CRM_Core_DAO::$_nullArray ) ;
+				$dao = CRM_Core_DAO::executeQuery( $sql ) ;
 				$dao->free();
 		
 			     $rtn_did_update = 1; 
@@ -2721,7 +2727,7 @@ class HebrewCalendar{
 			
 		}
 		
-		if(strlen( $extended_date_table) == 0){
+		if(strlen((string) $extended_date_table) == 0){
 			$rtn_data['error_message'] = "Could not get SQL table name for set '".HebrewCalendar::EXTENDED_DATE_CUSTOM_FIELD_GROUP_TITLE."'";
 			return $rtn_data;
 			
@@ -2747,7 +2753,7 @@ class HebrewCalendar{
 				
 		}
 		
-		if(  strlen($extended_birth_date) == 0 ){
+		if(  strlen((string) $extended_birth_date) == 0 ){
 			$rtn_data['error_message'] = "Could not get SQL column name for '".HebrewCalendar::EXTENDED_DATE_CUSTOM_FIELD_BIRTH_NAME."'";
 			return $rtn_data;
 		}
@@ -2769,7 +2775,7 @@ class HebrewCalendar{
 		
 		}
 		
-		if(  strlen($extended_death_date) == 0 ){
+		if(  strlen((string) $extended_death_date) == 0 ){
 			$rtn_data['error_message'] = "Could not get SQL field name for '".HebrewCalendar::EXTENDED_DATE_CUSTOM_FIELD_DEATH_NAME."'";
 			return $rtn_data;
 		}
@@ -2809,7 +2815,7 @@ class HebrewCalendar{
 
 
 		$p = [ 1 => [ $cur_id_parm, 'Integer' ] ];
-		$dao =& CRM_Core_DAO::executeQuery( $query, $p );
+		$dao = CRM_Core_DAO::executeQuery( $query, $p );
 		 
 		$first_name = null;
 		$birth_year = null;
@@ -3090,7 +3096,7 @@ class HebrewCalendar{
 				$cur_cid_html = "";
 				
 				
-				$dao =& CRM_Core_DAO::executeQuery( $yizkor_sql_str,   CRM_Core_DAO::$_nullArray ) ;
+				$dao = CRM_Core_DAO::executeQuery( $yizkor_sql_str ) ;
 
 				while ( $dao->fetch( ) ) {
 					//  print "<br>Have yizkor record!";
@@ -3257,8 +3263,8 @@ class HebrewCalendar{
 					
 
   //  was part of SQL where:  contact_b.created_date >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
-		if( strlen($yahrzeit_sql) > 0 ){
-			$dao =& CRM_Core_DAO::executeQuery( $yahrzeit_sql ,   CRM_Core_DAO::$_nullArray ) ;
+		if( strlen((string) $yahrzeit_sql) > 0 ){
+			$dao = CRM_Core_DAO::executeQuery( $yahrzeit_sql  ) ;
 /*
 			// Figure out how to format date for this locale
 			$config = CRM_Core_Config::singleton( );
@@ -3333,7 +3339,7 @@ class HebrewCalendar{
 								
 							if( in_array($dao->deceased_contact_id, $arr_dec_ids   )  == false){
 
-								if( strlen($relationship_name_formatted ) == 0 ){
+								if( strlen((string) $relationship_name_formatted ) == 0 ){
 									
 									// There is no relationship indicated in the database, use something generic for token. 
 									$relationship_name_formatted = "loved one";
@@ -3342,7 +3348,7 @@ class HebrewCalendar{
 								//if( isset( $tmp_deceasedids_for_con[$cid]) ){
 								$tmp_deceasedids_for_con[$cid] = $tmp_deceasedids_for_con[$cid].";".$dao->deceased_contact_id;
 								//}
-								if(isset( $values[$cid][$token_yah_dec_name]) && strlen( $values[$cid][$token_yah_dec_name] ) > 0 ){   
+								if(isset( $values[$cid][$token_yah_dec_name]) && strlen((string) $values[$cid][$token_yah_dec_name] ) > 0 ){   
 									$seper = $default_seperator; 
 								}else{  $seper = "";    }  ;
 
@@ -3352,7 +3358,7 @@ class HebrewCalendar{
 									$values[$cid][$token_yah_dec_name] = $deceased_display_name ;
 								}
 
-								if(isset( $values[$cid][$token_yah_english_date] ) && strlen( $values[$cid][$token_yah_english_date] ) > 0 ){   
+								if(isset( $values[$cid][$token_yah_english_date] ) && strlen((string) $values[$cid][$token_yah_english_date] ) > 0 ){   
 									$seper = $default_seperator;  
 								}else{ 
 										$seper = "";  
@@ -3369,7 +3375,7 @@ class HebrewCalendar{
 									
 
 								// Yahrzeit Hebrew date, written in English letters ( ie transliterated)
-								if( isset($values[$cid][$token_yah_hebrew_date])  && strlen( $values[$cid][$token_yah_hebrew_date])  > 0 ){   
+								if( isset($values[$cid][$token_yah_hebrew_date])  && strlen((string) $values[$cid][$token_yah_hebrew_date])  > 0 ){   
 									$seper = $default_seperator; 
 								}else{  
 									$seper = "";    
@@ -3382,7 +3388,7 @@ class HebrewCalendar{
 								}
 
 								// Yahrzeit Hebrew date, written in Hebrew letters.
-								if( isset( $values[$cid][$token_yah_hebrew_date_hebrew] ) && strlen($values[$cid][$token_yah_hebrew_date_hebrew]) > 0  ){
+								if( isset( $values[$cid][$token_yah_hebrew_date_hebrew] ) && strlen((string) $values[$cid][$token_yah_hebrew_date_hebrew]) > 0  ){
 									$values[$cid][$token_yah_hebrew_date_hebrew] = $values[$cid][$token_yah_hebrew_date_hebrew].$default_seperator.$yahrzeit_hebrew_date_format_hebrew;
 								}else{
 									$values[$cid][$token_yah_hebrew_date_hebrew] = $yahrzeit_hebrew_date_format_hebrew;
@@ -3391,7 +3397,7 @@ class HebrewCalendar{
 								
 								
 								
-								if( isset($values[$cid][$token_yah_dec_death_english_date]) && strlen( $values[$cid][$token_yah_dec_death_english_date])  > 0 ){   
+								if( isset($values[$cid][$token_yah_dec_death_english_date]) && strlen((string) $values[$cid][$token_yah_dec_death_english_date])  > 0 ){   
 									$seper = $default_seperator;  
 								}else{ 
 										$seper = "";   
@@ -3404,7 +3410,7 @@ class HebrewCalendar{
 									$values[$cid][$token_yah_dec_death_english_date] =  $english_deceased_date ;
 								}
 
-								if( isset($values[$cid][$token_yah_dec_death_hebrew_date]) && strlen( $values[$cid][$token_yah_dec_death_hebrew_date])  > 0 ){   
+								if( isset($values[$cid][$token_yah_dec_death_hebrew_date]) && strlen((string) $values[$cid][$token_yah_dec_death_hebrew_date])  > 0 ){   
 									$seper = $default_seperator; 
 								}else{  $seper = "";    }  ;
 								
@@ -3415,7 +3421,7 @@ class HebrewCalendar{
 								}
 
 								
-								if(isset( $values[$cid][$token_yah_relationship_name]) && strlen( $values[$cid][$token_yah_relationship_name] ) > 0 ){    
+								if(isset( $values[$cid][$token_yah_relationship_name]) && strlen((string) $values[$cid][$token_yah_relationship_name] ) > 0 ){    
 									$seper = $default_seperator; 
 								}else{  $seper = "";    }  ;
 								
@@ -3425,7 +3431,7 @@ class HebrewCalendar{
 									$values[$cid][$token_yah_relationship_name] = $relationship_name_formatted ;
 								}
 
-								if( isset( $values[$cid][$token_yah_english_date_morning]) && strlen( $values[$cid][$token_yah_english_date_morning] ) > 0 ){   
+								if( isset( $values[$cid][$token_yah_english_date_morning]) && strlen((string) $values[$cid][$token_yah_english_date_morning] ) > 0 ){   
 									$seper = $default_seperator; 
 								}else{  $seper = "";    }  ;
 								
@@ -3436,7 +3442,7 @@ class HebrewCalendar{
 								}
 
 								// token for: shabbat_before_parashat, if empty use holiday
-								if( strlen( $shabbat_before_parashat ) == 0){
+								if( strlen((string) $shabbat_before_parashat ) == 0){
 									$shabbat_before_parashat = $shabbat_before_holiday;
 								}
 								if( isset( $values[$cid][$token_yah_shabbat_parashat_before] )){
@@ -3446,7 +3452,7 @@ class HebrewCalendar{
 								}
 								
 								// token for: shabbat_after_parashat, if empty use holiday.
-								if( strlen( $shabbat_after_parashat ) == 0){
+								if( strlen((string) $shabbat_after_parashat ) == 0){
 									$shabbat_after_parashat = $shabbat_after_holiday;
 								}	
 								if( isset( $values[$cid][$token_yah_shabbat_parashat_after] )){
@@ -3458,7 +3464,7 @@ class HebrewCalendar{
 								
 								
 
-								if(isset( $values[$cid][$token_yah_erev_shabbat_before] ) && strlen( $values[$cid][$token_yah_erev_shabbat_before] ) > 0 ){   
+								if(isset( $values[$cid][$token_yah_erev_shabbat_before] ) && strlen((string) $values[$cid][$token_yah_erev_shabbat_before] ) > 0 ){   
 									$seper = $default_seperator;  }else{  $seper = "";    }  ;
 								
 								if( isset( $values[$cid][$token_yah_erev_shabbat_before] )){
@@ -3467,7 +3473,7 @@ class HebrewCalendar{
 									$values[$cid][$token_yah_erev_shabbat_before] = $formatted_friday_before;
 								}
 
-								if(isset( $values[$cid][$token_yah_shabbat_morning_before] ) && strlen( $values[$cid][$token_yah_shabbat_morning_before] ) > 0 ){  
+								if(isset( $values[$cid][$token_yah_shabbat_morning_before] ) && strlen((string) $values[$cid][$token_yah_shabbat_morning_before] ) > 0 ){  
 									$seper = $default_seperator;  
 								}else{  $seper = "";    }  ;
 								
@@ -3477,7 +3483,7 @@ class HebrewCalendar{
 									$values[$cid][$token_yah_shabbat_morning_before] = $formatted_saturday_before;
 								}
 
-								if(isset( $values[$cid][$token_yah_erev_shabbat_after] ) && strlen( $values[$cid][$token_yah_erev_shabbat_after] ) > 0 ){   
+								if(isset( $values[$cid][$token_yah_erev_shabbat_after] ) && strlen((string) $values[$cid][$token_yah_erev_shabbat_after] ) > 0 ){   
 									$seper = $default_seperator;  
 								}else{  $seper = "";    }  ;
 								
@@ -3487,7 +3493,7 @@ class HebrewCalendar{
 									$values[$cid][$token_yah_erev_shabbat_after] =  $formatted_friday_after;
 								}
 
-								if(isset( $values[$cid][$token_yah_shabbat_morning_after] ) && strlen( $values[$cid][$token_yah_shabbat_morning_after] ) > 0 ){  
+								if(isset( $values[$cid][$token_yah_shabbat_morning_after] ) && strlen((string) $values[$cid][$token_yah_shabbat_morning_after] ) > 0 ){  
 									$seper = $default_seperator; 
 								}else{  $seper = "";    }  ;
 								
@@ -3663,7 +3669,7 @@ class HebrewCalendar{
 		$purpose = 'birthday';
 		
 		
-		if(strlen( $gregorian_date_format) > 0 ){
+		if(strlen((string) $gregorian_date_format) > 0 ){
 			$tmpformat = $gregorian_date_format;
 		}else{
 			$tmpformat = 'yyyy-mm-dd';
@@ -3759,7 +3765,7 @@ class HebrewCalendar{
 		}	
 
 		//$tmpformat = 'MM dd, yy sunset';
-		if(strlen( $gregorian_date_format) > 0 ){
+		if(strlen((string) $gregorian_date_format) > 0 ){
 			$tmpformat = $gregorian_date_format;
 		}else{
 			$tmpformat = 'yyyy-mm-dd';
@@ -3811,7 +3817,7 @@ class HebrewCalendar{
 			
 		}
 		
-		if( $original_hyear  == "0000" ||  $original_hyear  == "0" || strlen(  $original_hyear) == 0 ){
+		if( $original_hyear  == "0000" ||  $original_hyear  == "0" || strlen((string) $original_hyear) == 0 ){
 			return "Cannot adjust date: Unrecognized original Hebrew year: ".$original_hyear;
 		}
 		
@@ -4056,7 +4062,7 @@ class HebrewCalendar{
 		
 		//
 		// $wanted_hebrew_year
-		if(strlen( $wanted_hebrew_year) > 0 ){
+		if(strlen((string) $wanted_hebrew_year) > 0 ){
 			//print "<br>wanted heb year: ".$wanted_hebrew_year."  heb month: ".$hebrewdeathMonth;
 			$correct_yarzheit = self::util_adjust_hebrew_date($hebrewdeathYear , $wanted_hebrew_year, $hebrewdeathMonth, $hebrewdeathDay, $erev_start_flag, $tmpformat, $purpose);
 			//print "<br>Correct yahrzeit:  $correct_yarzheit ";
@@ -4375,7 +4381,7 @@ class HebrewCalendar{
 
 		$tmp_schema_name = '';
 		$sql = "SELECT SCHEMA() as tmp_sname from civicrm_contact limit 0, 1" ;
-		$dao =& CRM_Core_DAO::executeQuery( $sql ,   CRM_Core_DAO::$_nullArray ) ;
+		$dao = CRM_Core_DAO::executeQuery( $sql  ) ;
 		 
 		if($dao->fetch( )){
 			$tmp_schema_name = $dao->tmp_sname;
@@ -4401,7 +4407,7 @@ class HebrewCalendar{
 			return $tmp_return;
 		}
 
-		if(strlen($deceased_year) > 0 && strlen($deceased_month) > 0 && strlen($deceased_day) > 0){
+		if(strlen((string) $deceased_year) > 0 && strlen((string) $deceased_month) > 0 && strlen((string) $deceased_day) > 0){
 
             $wanted_year = ""; 
 			$tmp_yahrzeit_date_observe_english = new DateTime($cur_year.'-'.$deceased_month.'-'.$deceased_day);

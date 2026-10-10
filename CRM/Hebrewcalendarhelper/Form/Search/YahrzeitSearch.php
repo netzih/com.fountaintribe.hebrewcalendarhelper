@@ -389,7 +389,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
   	}
   		
   	// get membership ids and org contact ids.
-  	if( strlen(  $cur_domain_id ) > 0 ){
+  	if( strlen((string) $cur_domain_id ) > 0 ){
   		$api_result = civicrm_api3('MembershipType', 'get', [
   				'sequential' => 1,
   				'is_active' => 1,
@@ -462,7 +462,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
   					
   			}
   			
-  			if(strlen( $extended_date_table) == 0){
+  			if(strlen((string) $extended_date_table) == 0){
   				$rtn_data['error_message'] = "Could not get SQL table name for set '".HebrewCalendar::EXTENDED_DATE_CUSTOM_FIELD_GROUP_TITLE."'";
   				return $rtn_data;
   					
@@ -488,7 +488,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
   			
   			}
   			
-  			if(  strlen($extended_birth_date) == 0 ){
+  			if(  strlen((string) $extended_birth_date) == 0 ){
   				$rtn_data['error_message'] = "Could not get SQL column name for '".HebrewCalendar::EXTENDED_DATE_CUSTOM_FIELD_BIRTH_NAME."'";
   				return $rtn_data;
   			}
@@ -511,7 +511,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
   			
   			}
   			
-  			if(  strlen($extended_death_date) == 0 ){
+  			if(  strlen((string) $extended_death_date) == 0 ){
   				$rtn_data['error_message'] = "Could not get SQL field name for '".HebrewCalendar::EXTENDED_DATE_CUSTOM_FIELD_DEATH_NAME."'";
   				return $rtn_data;
   			}
@@ -595,7 +595,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
   	  	 
   	  }
   
-    if(isset($extended_hebrewname) && strlen($extended_hebrewname) > 0 ){
+    if(isset($extended_hebrewname) && strlen((string) $extended_hebrewname) > 0 ){
     	
     	$heb_name_sql = $extended_hebrewname." as hebrew_name, ";
     }else{
@@ -605,7 +605,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
     
     
     
-    if(isset( $extended_plaque_location ) && strlen($extended_plaque_location) > 0 && isset($extended_has_plaque ) && strlen( $extended_has_plaque ) > 0  ){
+    if(isset( $extended_plaque_location ) && strlen((string) $extended_plaque_location) > 0 && isset($extended_has_plaque ) && strlen((string) $extended_has_plaque ) > 0  ){
     	$plaque_sql = $extended_plaque_location." as plaque_location, if(".$extended_has_plaque." OR length(".$extended_plaque_location.") > 0, 'Yes', 'No') as has_plaque, ";
     }else{
     	$plaque_sql = " '' as  plaque_location, '' as has_plaque, ";
@@ -818,13 +818,13 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
         contact_b.mourner_contact_id = subr.contact_id_a AND subr.is_active = 1 AND subr.relationship_type_id IN ( ".$tmp_rel_type_ids." ) LIMIT 1 )";  
 
 
-  if( isset($extended_religious_table) &&  strlen( $extended_religious_table ) > 0 ){
+  if( isset($extended_religious_table) &&  strlen((string) $extended_religious_table ) > 0 ){
   	$religious_sql = " LEFT JOIN ".$extended_religious_table." extra_religious on contact_deceased.id = extra_religious.entity_id ";
   }else{
   	$religious_sql = ""; 
   }
   
-  if(isset( $extended_plaque_table ) && strlen($extended_plaque_table) > 0  ){
+  if(isset( $extended_plaque_table ) && strlen((string) $extended_plaque_table) > 0  ){
   	  $plaque_sql =  " LEFT JOIN ".$extended_plaque_table." extra_plaque on contact_deceased.id = extra_plaque.entity_id "; 
   }else{
   	$plaque_sql = ""; 
@@ -865,7 +865,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
   	
   	// Determine correct SQL field names for filtering on  dates. 
   	$date_sql_field_name = "";
-  	if(  strlen($date_to_filter) > 0 ){
+  	if(  strlen((string) $date_to_filter) > 0 ){
   		$date_sql_field_name = $date_to_filter;  // English-based date field.
   		
   		if( $date_to_filter == "yahrzeit_erev_shabbat_before"  || $date_to_filter == "yahrzeit_shabbat_morning_before" ){
@@ -891,14 +891,14 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
   	if (  $date_range_ui  == "hebrew_month_year" ){
           	$hebrew_year_choice = $this->_formValues['hebrew_year_choice'];
           	
-          	if( strlen($hebrew_year_choice) > 0){
+          	if( strlen((string) $hebrew_year_choice) > 0){
           		$clauses[] =  $hebrew_year_sql_field_name."  =  ".$hebrew_year_choice; 
           	}
           	
           	// 'hebrew_month_choice'
           	$hebrew_month_choice = $this->_formValues['hebrew_month_choice'];
           	 
-          	if( strlen($hebrew_month_choice) > 0){
+          	if( strlen((string) $hebrew_month_choice) > 0){
           		$clauses[] =  $hebrew_month_sql_field_name." =  ".$hebrew_month_choice;
           	}
     }else if( $date_range_ui  == "specific_dates" ){
@@ -911,7 +911,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
    
    
    
-       if ( strlen($startDate) > 0  ) {
+       if ( strlen((string) $startDate) > 0  ) {
       		$clauses[] = $date_sql_field_name." >= $startDate";
       	}
       
@@ -920,7 +920,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
       	}else{
       		$endDate = "";
       	}
-      	if ( strlen($endDate) > 0  ) {
+      	if ( strlen((string) $endDate) > 0  ) {
       		$clauses[] = $date_sql_field_name." <= $endDate";
       	}
   
@@ -936,7 +936,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
           		foreach( $relative_time_array as $relative_time){
           			if( $i == 0){
           				$rel_time_str = "(";
-          			}else if( $i > 0 && strlen($rel_time_str) > 2 ){
+          			}else if( $i > 0 && strlen((string) $rel_time_str) > 2 ){
           				$rel_time_str = $rel_time_str." OR ";
           			}
           			
@@ -961,7 +961,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
           
           		}
           	}
-          	if( isset( $rel_time_str ) &&  strlen( $rel_time_str) > 0){
+          	if( isset( $rel_time_str ) &&  strlen((string) $rel_time_str) > 0){
           		$rel_time_str = $rel_time_str.")";
           		$clauses[] = $rel_time_str;
           	}
@@ -994,7 +994,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
           	$rel_time_str = " 1=1 ";
         }
 
-  	if( isset( $rel_time_str ) &&  strlen( $rel_time_str) > 0){
+  	if( isset( $rel_time_str ) &&  strlen((string) $rel_time_str) > 0){
           	
                  $clauses[] = $rel_time_str;
         }
@@ -1009,7 +1009,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
    //       		foreach( $relative_time_array as $relative_time){
    //       			if( $i == 0){
    //       				$rel_time_str = "(";
-   //       			}else if( $i > 0 && strlen($rel_time_str) > 2 ){
+   //       			}else if( $i > 0 && strlen((string) $rel_time_str) > 2 ){
    //       				$rel_time_str = $rel_time_str." OR ";
    //       			}
           			
@@ -1022,7 +1022,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
           
    //       		}
     //      	}
-     //     	if( isset( $rel_time_str ) &&  strlen( $rel_time_str) > 0){
+     //     	if( isset( $rel_time_str ) &&  strlen((string) $rel_time_str) > 0){
       //    		$rel_time_str = $rel_time_str.")";
       //    		$clauses[] = $rel_time_str;
        //   	}
@@ -1101,7 +1101,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
     	$comm_prefs = "";
     }
   
-    if( strlen($comm_prefs ) > 0 ){
+    if( strlen((string) $comm_prefs ) > 0 ){
     	$clauses[] = "contact_a.preferred_communication_method = '".$comm_prefs."' "; 	
     }
   
@@ -1171,7 +1171,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
   	}else{
   		$gender_choice = "";
   	}
-  	if( strlen( $gender_choice) > 0 ){
+  	if( strlen((string) $gender_choice) > 0 ){
   		$clauses[] = "contact_a.gender_id = $gender_choice";
   
   	}
@@ -1190,7 +1190,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
    
    /*
   	$date_sql_field_name = "";
-  	if( strlen($date_to_filter) > 0 ){
+  	if( strlen((string) $date_to_filter) > 0 ){
   		$date_sql_field_name = $date_to_filter;
   
   	}else{
@@ -1238,8 +1238,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
   function count( ) {
   	$sql = $this->all( );
   	 
-  	$dao = CRM_Core_DAO::executeQuery( $sql,
-  			CRM_Core_DAO::$_nullArray );
+  	$dao = CRM_Core_DAO::executeQuery( $sql);
   	return $dao->N;
   }
    

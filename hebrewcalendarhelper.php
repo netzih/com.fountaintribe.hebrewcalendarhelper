@@ -10,13 +10,34 @@ function hebrewcalendarhelper_civicrm_post($op, $objectName, $objectId, &$object
   if ($objectName == 'Individual' && ($op == 'create' || $op == 'edit' || $op == 'restore')) {
     // If there is a date of birth or date of death, then calculate Hebrew dates.
     // Note that this works with InlineEdit, as long as the section modified has relevant info.
-    if (!empty($objectRef->birth_date) || !empty($objectRef->deceased_date)) {
+    // Without ext-calendar there is nothing to calculate; the status check says so.
+    if ((!empty($objectRef->birth_date) || !empty($objectRef->deceased_date)) && function_exists('gregoriantojd')) {
       // Calculate Hebrew demographic dates, such as next yahrzeit date, next hebrew birthday date for this contact.
       civicrm_api3('AllHebrewDates', 'calculate', [
         'sequential' => 1,
         'contact_ids' => $objectId,
       ]);
     }
+  }
+}
+
+/**
+ * Implements hook_civicrm_check().
+ *
+ * The Hebrew date math needs PHP's calendar extension, which many hosts leave out.
+ */
+function hebrewcalendarhelper_civicrm_check(&$messages, $statusNames = [], $includeDisabled = FALSE) {
+  if ($statusNames && !in_array('hebrewcalendarhelperExtCalendar', $statusNames, TRUE)) {
+    return;
+  }
+  if (!function_exists('gregoriantojd')) {
+    $messages[] = new CRM_Utils_Check_Message(
+      'hebrewcalendarhelperExtCalendar',
+      ts('Hebrew Calendar Helper needs the PHP calendar extension (ext-calendar). Until your host enables it, Hebrew dates, yahrzeits and bar/bat mitzvah dates are not calculated.'),
+      ts('PHP calendar extension missing'),
+      \Psr\Log\LogLevel::ERROR,
+      'fa-calendar'
+    );
   }
 }
 
@@ -149,6 +170,7 @@ function hebrewcalendarhelper_civicrm_tokenValues(&$values, &$contactIDs, $job =
     // CiviCRM is buggy here, if token is being used in CiviMail, we need to use the key
     // as the token. Otherwise (PDF Letter, one-off email, etc) we
     // need to use the value.
+    $token_date_portion = '';
     while ($cur_token_raw = current($tokens['yahrzeit'])){
       $tmp_key = key($tokens['yahrzeit']);
       $cur_token = '';
@@ -165,7 +187,7 @@ function hebrewcalendarhelper_civicrm_tokenValues(&$values, &$contactIDs, $job =
       $token_as_array = explode("___", $cur_token);
       $partial_token = $token_as_array[0];
 
-      if (isset($token_as_array[1]) && strlen($token_as_array[1]) > 0) {
+      if (isset($token_as_array[1]) && strlen((string) $token_as_array[1]) > 0) {
         $token_date_portion =  $token_as_array[1];
       }
 

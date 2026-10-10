@@ -23,7 +23,7 @@ class CustomSearchTools{
 		}
 		 
 		// get membership ids and org contact ids.
-		if( strlen(  $cur_domain_id ) > 0 ){
+		if( strlen((string) $cur_domain_id ) > 0 ){
 			$api_result = civicrm_api3('MembershipType', 'get', [
 					'sequential' => 1,
 					'is_active' => 1,
@@ -66,7 +66,7 @@ class CustomSearchTools{
 			WHERE og.name = 'preferred_communication_method' 
 			AND ov.is_active = 1  "; 
 	
-	$dao = & CRM_Core_DAO::executeQuery( $sql, CRM_Core_DAO::$_nullArray );
+	$dao = CRM_Core_DAO::executeQuery( $sql );
                                              
          while ($dao->fetch()){	
          
@@ -108,7 +108,7 @@ class CustomSearchTools{
 		// deal with membership filters. 
 	//	 $tmp_membership_sql_list = self::convertArrayToSqlString( $mem_types_of_contact  ) ; 
 		$tmp_membership_sql_list = implode( ",", $mem_types_of_contact ); 
-		if(strlen($tmp_membership_sql_list) > 0 ){
+		if(strlen((string) $tmp_membership_sql_list) > 0 ){
 			$clauses[] =   "(  ( ".$contact_field_name." IN ( SELECT mem.contact_id
 								 FROM civicrm_membership mem 
 								 LEFT JOIN civicrm_membership_status mem_status ON mem.status_id = mem_status.id 
@@ -121,7 +121,7 @@ class CustomSearchTools{
 	
 		//$tmp_membership_org_sql_list = self::convertArrayToSqlString( $mem_orgs_of_contact  ) ; 
 		$tmp_membership_org_sql_list = implode( ",", $mem_orgs_of_contact  );
-		if(strlen($tmp_membership_org_sql_list) > 0 ){
+		if(strlen((string) $tmp_membership_org_sql_list) > 0 ){
 			 $clauses[] =   "(  ( ".$contact_field_name." IN (  SELECT mem.contact_id
 								 FROM civicrm_membership mem 
 								 LEFT JOIN civicrm_membership_status mem_status ON mem.status_id = mem_status.id
@@ -142,7 +142,7 @@ class CustomSearchTools{
 
         // The field contact_a.preferred_communication_method can have one or more option in it, each 
         // surrounded by a non-printable char. Therefore the where clauses have this non-printable char too.
-	if(strlen($comm_prefs) > 0 ){
+	if(strlen((string) $comm_prefs) > 0 ){
 	    if( $comm_prefs == 2){
 		// email.   Include contacts who have an email preference, 
 		// also include contacts who have no preference but have a email address. 
@@ -200,7 +200,7 @@ class CustomSearchTools{
 	
 	$params = ['action' => 'get' , 'version'    => '3.0'];
 	$mem_ids =           [ ];
-	//$myGroups =& civicrm_group_get($params);
+	//$myGroups = civicrm_group_get($params);
 	//$tmp = civicrm_api( 'membership', 'Get', $params);
 	
 	
@@ -245,7 +245,7 @@ class CustomSearchTools{
 	
 		 $groupIDs = self::getSQLStringFromArray($groupIDs_raw);
 		 
-		 if(strlen($groupIDs) == 0 ){
+		 if(strlen((string) $groupIDs) == 0 ){
 		 	return ; 
 		 
 		 }
@@ -292,7 +292,7 @@ class CustomSearchTools{
 	
 	$params = ['version'    => '3.0'];
 	$group_ids =           [ ];
-	//$myGroups =& civicrm_group_get($params);
+	//$myGroups = civicrm_group_get($params);
 	$tmp = civicrm_api( 'Group', 'Get', $params);
 	
 	
