@@ -441,18 +441,18 @@ class HebrewCalendar{
 	
 	
 		$formated_rel_name = '';
-		$sql = "(SELECT label_b_a as label , name_b_a as rel_api_name,  civicrm_option_value.label as gender_label
+		$sql = "(SELECT label_b_a as label , name_b_a as rel_api_name,  civicrm_option_value.name as gender_label
 		FROM `civicrm_relationship` rel, civicrm_relationship_type reltype, civicrm_contact con
-		LEFT JOIN civicrm_option_value ON civicrm_option_value.option_group_id = 3 AND con.gender_id = civicrm_option_value.value
+		LEFT JOIN civicrm_option_value ON civicrm_option_value.option_group_id = (SELECT id FROM civicrm_option_group WHERE name = 'gender') AND con.gender_id = civicrm_option_value.value
 		where
 		rel.relationship_type_id = reltype.id
 		and contact_id_a = $mourner_contact_id and contact_id_b = $deceased_contact_id
 		and contact_id_b = con.id
 		and rel.is_active = 1  )
 		UNION
-		(SELECT label_a_b as label , name_a_b as rel_api_name,  civicrm_option_value.label as gender_label
+		(SELECT label_a_b as label , name_a_b as rel_api_name,  civicrm_option_value.name as gender_label
 		FROM `civicrm_relationship` rel, civicrm_relationship_type reltype, civicrm_contact con
-		LEFT JOIN civicrm_option_value ON civicrm_option_value.option_group_id = 3 AND con.gender_id = civicrm_option_value.value
+		LEFT JOIN civicrm_option_value ON civicrm_option_value.option_group_id = (SELECT id FROM civicrm_option_group WHERE name = 'gender') AND con.gender_id = civicrm_option_value.value
 		where
 		rel.relationship_type_id = reltype.id
 		and contact_id_a = $deceased_contact_id and contact_id_b = $mourner_contact_id
@@ -2292,11 +2292,11 @@ class HebrewCalendar{
 	  		year(c.birth_date) as birth_year,
 		month(c.birth_date) as birth_month,
 		day(c.birth_date) as birth_day,
-	  		civicrm_option_value.label as gender_label,
+	  		civicrm_option_value.name as gender_label,
 	  		 edt.".$extended_birth_date_col_name." as birth_date_before_sunset
 	  		  FROM civicrm_contact c
-	  		  JOIN ".$extended_dates_table_name." edt ON c.id = edt.entity_id
-	  		  LEFT JOIN civicrm_option_value ON civicrm_option_value.option_group_id = 3 AND c.gender_id = civicrm_option_value.value
+	  		  LEFT JOIN ".$extended_dates_table_name." edt ON c.id = edt.entity_id
+	  		  LEFT JOIN civicrm_option_value ON civicrm_option_value.option_group_id = (SELECT id FROM civicrm_option_group WHERE name = 'gender') AND c.gender_id = civicrm_option_value.value
 	          where c.is_deleted <> 1 AND
 	  		  		c.contact_type = 'Individual' AND
 	  		  		c.birth_date is not null ".$contactids_sql;
@@ -2793,16 +2793,16 @@ class HebrewCalendar{
 		day(civicrm_contact.birth_date) as birth_day,
 		civicrm_contact.is_deceased as is_deceased,
 		civicrm_contact.contact_type as contact_type,
-		civicrm_option_value.label as gender_label,
+		civicrm_option_value.name as gender_label,
 		$extended_date_table.$extended_birth_date as birth_date_before_sunset,
 		year(civicrm_contact.deceased_date) as deceased_year,
 		month(civicrm_contact.deceased_date) as deceased_month,
 		day(civicrm_contact.deceased_date) as deceased_day,
 		$extended_date_table.$extended_death_date as deceased_date_before_sunset,
-		civicrm_option_value.label as gender_label
+		civicrm_option_value.name as gender_label
 		FROM civicrm_contact
 		LEFT JOIN $extended_date_table ON civicrm_contact.id = $extended_date_table.entity_id
-		LEFT JOIN civicrm_option_value ON civicrm_option_value.option_group_id = 3 AND civicrm_contact.gender_id = civicrm_option_value.value
+		LEFT JOIN civicrm_option_value ON civicrm_option_value.option_group_id = (SELECT id FROM civicrm_option_group WHERE name = 'gender') AND civicrm_contact.gender_id = civicrm_option_value.value
 		WHERE civicrm_contact.id = %1 AND civicrm_contact.contact_type = 'Individual'  " ;
 
 
@@ -3970,8 +3970,9 @@ class HebrewCalendar{
 			return $defaultmsg;
 		}
 
-		if($gregorian_ibeforesunset == ''){
-			return $defaultmsg;
+		if ((string) $gregorian_ibeforesunset === '') {
+			// Unknown: take the date as entered, as if before sunset.
+			$gregorian_ibeforesunset = '1';
 		}
 
 
@@ -4191,8 +4192,9 @@ class HebrewCalendar{
 		}
 
 
-		if($ibeforesunset == ''  ){
-			return $defaultmsg." because before sunset flag is blank";
+		if ((string) $ibeforesunset === '') {
+			// Unknown: take the date as entered, as if before sunset.
+			$ibeforesunset = '1';
 		}
 
 
@@ -4406,9 +4408,13 @@ class HebrewCalendar{
 			// Since this function is expected to return the evening of the yahrzeit, need to subtract 1 day.
 			$tmp_yahrzeit_date_observe_english = $tmp_yahrzeit_date_observe_english->sub(new DateInterval('P1D')) ;
 
+			// Like the Hebrew yahrzeit, this year's counts as next until the day after it: the
+			// evening it starts is yesterday at the latest.
+			$yesterday = new DateTime('yesterday');
+
 			// 1= next yahrzeit, 2 = yahrzeit after next, etc.
 			if( $year_offset > 0 ){
-				if( $tmp_yahrzeit_date_observe_english < new DateTime()){
+				if( $tmp_yahrzeit_date_observe_english < $yesterday){
 			 
 					$wanted_year = $cur_year + $year_offset; 
 					
@@ -4418,7 +4424,7 @@ class HebrewCalendar{
 				}
 			}else if($year_offset < 0){
 				// print "<br>Need prev. English yahrzeit date. ";
-				if( $tmp_yahrzeit_date_observe_english >= new DateTime()){
+				if( $tmp_yahrzeit_date_observe_english >= $yesterday){
 			  // subtract a year.
 					$wanted_year = $cur_year + $year_offset ;
 					//$tmp_yahrzeit_date_observe_english->sub(new DateInterval('P1Y')) ;
