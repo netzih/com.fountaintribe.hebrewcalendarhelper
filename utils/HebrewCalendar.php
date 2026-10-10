@@ -3544,19 +3544,12 @@ class HebrewCalendar{
 			return ts("Tevet");
 		}else if($hebrewMonth == HebrewCalendar::HEBREW_MONTH_SHEVAT){
 			return ts("Sh'vat");
-		}else if( $hebrewMonth == HebrewCalendar::HEBREW_MONTH_ADAR ){
-			/* Its Adar or AdarI */
-		 }else if($hebrewMonth == HebrewCalendar::HEBREW_MONTH_ADAR){
-      			 return ts("Adar I");
-    		 }else if($hebrewMonth == HebrewCalendar::HEBREW_MONTH_ADAR_2){
-      			 // Its Adar or AdarII
-				
-			$hebrew_leap_year = $this->is_hebrew_year_leap_year($hebrewYear);
-      			if ($hebrew_leap_year) {
-      			   return ts("Adar II");
-     			  } else {
-				return ts("Adar");
-			}
+		}else if($hebrewMonth == HebrewCalendar::HEBREW_MONTH_ADAR){
+			// PHP only uses month 6 in leap years, where it is Adar I.
+			return $this->is_hebrew_year_leap_year($hebrewYear) ? ts("Adar I") : ts("Adar");
+		}else if($hebrewMonth == HebrewCalendar::HEBREW_MONTH_ADAR_2){
+			// Month 7 is Adar II in a leap year and plain Adar otherwise.
+			return $this->is_hebrew_year_leap_year($hebrewYear) ? ts("Adar II") : ts("Adar");
 		}else if($hebrewMonth == HebrewCalendar::HEBREW_MONTH_NISAN){
 			return ts("Nisan");
 		}else if($hebrewMonth == HebrewCalendar::HEBREW_MONTH_IYYAR){
@@ -3852,9 +3845,10 @@ class HebrewCalendar{
 						// Adar (non-leap) birthdays are observed in AdarII. 
 						$tmp_hmonth = HebrewCalendar::HEBREW_MONTH_ADAR_2;
 					}else if( $purpose == "yahrzeit" ){
-						// Adar (non-leap) yahrzeits are observed in AdarI. 
-						$tmp_hmonth = HebrewCalendar::HEBREW_MONTH_ADAR_2;
-						
+						// Customs differ: the setting chooses Adar I or Adar II (the default, as before).
+						$tmp_hmonth = \Civi::settings()->get('hebrewcalendarhelper_yahrzeit_adar') === 'adar1'
+							? HebrewCalendar::HEBREW_MONTH_ADAR
+							: HebrewCalendar::HEBREW_MONTH_ADAR_2;
 					}
 					
 	
@@ -3886,7 +3880,12 @@ class HebrewCalendar{
 				// Does the 30th of the input month occur in this observance year?
 				$valid_hebrew_date  = self::verify_hebrew_date($ihyear , $original_hmonth, $original_hday);
 				
-				if( $valid_hebrew_date == 0){
+				if( $valid_hebrew_date == 0 && ($purpose == "barbat" || $purpose == "birthday")){
+					// Someone born on the 30th has not reached the anniversary until the 30th is over,
+					// so in a year without one it is the 1st of the next month.
+					$tmp_hmonth = $original_hmonth + 1;
+					$tmp_hday  = '1';
+				}else if( $valid_hebrew_date == 0){
 				   // the 30 does not occur in this observance year, need to decide to move it up or move it back.
 				   $first_observance_heb_year = $original_hyear + 1;
 					$is_first_observance_valid_hebrew_date = self::verify_hebrew_date( $first_observance_heb_year, $original_hmonth, $original_hday);
