@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/ajax/hebrewcalendarhelper/places</path>
+    <page_callback>CRM_Hebrewcalendarhelper_Page_Places</page_callback>
+    <access_arguments>administer CiviCRM;administer hebrewcalendarhelper</access_arguments>
+  </item>
+</menu>

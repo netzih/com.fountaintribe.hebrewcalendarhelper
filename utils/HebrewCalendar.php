@@ -375,29 +375,18 @@ class HebrewCalendar{
 				// CRM_Core_Error::debug("Will use  HebCal.com API setting for diaspora. ", $tmp_in_israel);
 			}
 		
-			$service_url = "https://www.hebcal.com/hebcal/?v=1&cfg=json&maj=on&min=on&lg=".
-			   $language_api_parm."&i=".$tmp_in_israel."&mod=on&nx=on&year=".$year_parm.
-			   "&month=x&ss=on&mf=on".$geo_api_query_string."&c=on&m=50&s=on";
-			
-			$curl = curl_init($service_url);
-			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-			$curl_response = curl_exec($curl);
-			if ($curl_response === false) {
-				$info = curl_getinfo($curl);
-				CRM_Core_Error::debug("Error getting remote hebcal.com data: ", 'error occured during curl exec. Additional info: ' . var_export($info));
-			}
-			$decoded = json_decode($curl_response);
-			if (isset($decoded->response->status) && $decoded->response->status == 'ERROR') {
-				CRM_Core_Error::debug("Error getting remote hebcal.com data: " . $decoded->response->errormessage);
-			}
-			//CRM_Core_Error::debug(" $tmp_year Good news, got hebcal.com data: " , 'response ok!');
-			//CRM_Core_Error::debug("$tmp_year Data: ", $decoded);
-			HebrewCalendar::$allRemoteHebCalData[$year_parm] = $decoded->items;
-		
-		
+			// Holidays and portions for a year never change: cache them for 30 days.
+			$data = \Civi\Hebrewcalendarhelper\Hebcal::get('hebcal', [
+				'v' => 1, 'cfg' => 'json', 'maj' => 'on', 'min' => 'on', 'lg' => $language_api_parm,
+				'i' => $tmp_in_israel, 'mod' => 'on', 'nx' => 'on', 'year' => $year_parm, 'month' => 'x',
+				'ss' => 'on', 'mf' => 'on', 'geo' => 'none', 's' => 'on',
+			], 30 * 86400);
+			// The lookups below read the items as objects.
+			HebrewCalendar::$allRemoteHebCalData[$year_parm] = array_map(fn($item) => (object) $item, $data['items'] ?? []);
+
 		//var_export($decoded->response);
 		}else{
-			CRM_Core_Error::debug("Error: missing required parms for either 'year_parm' or 'in_israel_crm_domain_setting' " , "Did not attempt to get anything from hebcal.com API");
+			\Civi::log()->warning("Hebrew Calendar Helper: no year to look up holidays and portions for.");
 		}
 		
 		

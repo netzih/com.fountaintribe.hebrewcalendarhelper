@@ -22,6 +22,45 @@ function hebrewcalendarhelper_civicrm_post($op, $objectName, $objectId, &$object
 }
 
 /**
+ * Implements hook_civicrm_container().
+ *
+ * Registers the token subscribers. (Not with the scan-classes mixin: it would load every class
+ * file, including the legacy custom search, which fails without legacycustomsearches.)
+ */
+function hebrewcalendarhelper_civicrm_container(\Symfony\Component\DependencyInjection\ContainerBuilder $container) {
+  $container->register('civi.hebrewcalendarhelper.shabbatTokens', \Civi\Hebrewcalendarhelper\Shabbat\Tokens::class)
+    ->addTag('kernel.event_subscriber')
+    ->setPublic(TRUE);
+}
+
+/**
+ * Implements hook_civicrm_preProcess().
+ */
+function hebrewcalendarhelper_civicrm_preProcess($formName, &$form) {
+  if (\Civi\Hebrewcalendarhelper\SettingsPage::isSettingsForm($formName, $form)) {
+    \Civi\Hebrewcalendarhelper\SettingsPage::preProcess($form);
+  }
+}
+
+/**
+ * Implements hook_civicrm_buildForm().
+ */
+function hebrewcalendarhelper_civicrm_buildForm($formName, &$form) {
+  if (\Civi\Hebrewcalendarhelper\SettingsPage::isSettingsForm($formName, $form)) {
+    \Civi\Hebrewcalendarhelper\SettingsPage::buildForm();
+  }
+}
+
+/**
+ * Implements hook_civicrm_postProcess().
+ */
+function hebrewcalendarhelper_civicrm_postProcess($formName, $form) {
+  if (\Civi\Hebrewcalendarhelper\SettingsPage::isSettingsForm($formName, $form)) {
+    \Civi\Hebrewcalendarhelper\SettingsPage::postProcess();
+  }
+}
+
+/**
  * Implements hook_civicrm_check().
  *
  * The Hebrew date math needs PHP's calendar extension, which many hosts leave out.
