@@ -107,7 +107,7 @@ class Calendar {
         $times[] = [$category, $day, new \DateTimeImmutable($date)];
       }
     }
-    $week['parsha'] = self::respell($week['parsha'] ?? $saturdayHoliday, $overrides);
+    $week['parsha'] = self::respell($week['parsha'] ?? self::readableHoliday($saturdayHoliday), $overrides);
 
     foreach ($times as [$category, $day, $time]) {
       if ($category === 'candles' && $day === $friday && $week['candles'] === NULL) {
@@ -146,6 +146,36 @@ class Calendar {
     }
     $week['holiday'] = $holidays ? implode(' & ', array_unique($holidays)) : NULL;
     return $week;
+  }
+
+  /**
+   * How a Shabbat that has no weekly portion is named in its place: Hebcal's name for the
+   * day, made readable. "Pesach III (CH''M)" => "Shabbat Chol HaMoed Pesach",
+   * "Sukkot I" => "Sukkot (1st day)", "Rosh Hashana 5787" => "Rosh Hashana (1st day)".
+   * Names in Hebrew letters are left as Hebcal gives them.
+   */
+  public static function readableHoliday(?string $title): ?string {
+    if ($title === NULL || preg_match('/\p{Hebrew}/u', $title)) {
+      return $title;
+    }
+    // Chol HaMoed: "Pesach III (CH''M)", with straight or curly apostrophes.
+    if (preg_match("/\(CH['\x{2019}]{2}M\)/u", $title)) {
+      return E::ts('Shabbat Chol HaMoed %1', [1 => self::holidayName($title)]);
+    }
+    $ordinals = [
+      'I' => E::ts('1st day'),
+      'II' => E::ts('2nd day'),
+      'VII' => E::ts('7th day'),
+      'VIII' => E::ts('8th day'),
+    ];
+    if (preg_match('/^(.+?)\s+(VIII|VII|II|I)$/u', $title, $m)) {
+      return "{$m[1]} ({$ordinals[$m[2]]})";
+    }
+    // Hebcal names the first day of Rosh Hashana by the new year.
+    if (preg_match('/^(.+?)\s+\d{4}$/u', $title, $m)) {
+      return "{$m[1]} ({$ordinals['I']})";
+    }
+    return $title;
   }
 
   /**

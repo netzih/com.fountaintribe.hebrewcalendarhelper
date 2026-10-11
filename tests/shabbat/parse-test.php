@@ -94,20 +94,20 @@ namespace {
 
   // Pesach 2027: Yom Tov Thursday and Friday, then Shabbat Chol HaMoed.
   $pesach = week('pesach-2027-04-19', '2027-04-23', '2027-04-19 10:00');
-  check('Pesach: Shabbat', summary($pesach), ['Fri 2027-04-23 19:34', 'Sat 2027-04-24 20:35', 'Pesach III (CH’’M)']);
+  check('Pesach: Shabbat', summary($pesach), ['Fri 2027-04-23 19:34', 'Sat 2027-04-24 20:35', 'Shabbat Chol HaMoed Pesach']);
   check('Pesach: holiday', $pesach['holiday'], 'Pesach');
   check('Pesach: schedule', schedule($pesach), implode("\n", [
     'Pesach candle lighting: Wednesday, Apr 21, 7:32 pm',
     'Pesach candle lighting: Thursday, Apr 22, after 8:33 pm',
     'Shabbat candle lighting: Friday, Apr 23, 7:34 pm',
     'Shabbat ends: Saturday, Apr 24, 8:35 pm',
-    'Torah portion: Pesach III (CH’’M)',
+    'Torah portion: Shabbat Chol HaMoed Pesach',
   ]));
   check('Pesach: sent Thursday afternoon, Wednesday is gone', schedule(week('pesach-2027-04-19', '2027-04-23', '2027-04-22 15:00')), implode("\n", [
     'Pesach candle lighting: Thursday, Apr 22, after 8:33 pm',
     'Shabbat candle lighting: Friday, Apr 23, 7:34 pm',
     'Shabbat ends: Saturday, Apr 24, 8:35 pm',
-    'Torah portion: Pesach III (CH’’M)',
+    'Torah portion: Shabbat Chol HaMoed Pesach',
   ]));
 
   // End of Pesach 2027: Yom Tov Tuesday night to Thursday night, then a separate Shabbat.
@@ -125,13 +125,13 @@ namespace {
 
   // Rosh Hashana 2027 starts Friday night: Yom Tov runs on to Sunday night.
   $rh = week('roshhashana-2027-09-27', '2027-10-01', '2027-09-27 10:00');
-  check('Rosh Hashana: Shabbat', summary($rh), ['Fri 2027-10-01 18:35', 'Sat 2027-10-02 19:30', 'Rosh Hashana 5788']);
+  check('Rosh Hashana: Shabbat', summary($rh), ['Fri 2027-10-01 18:35', 'Sat 2027-10-02 19:30', 'Rosh Hashana (1st day)']);
   check('Rosh Hashana: holiday', $rh['holiday'], 'Rosh Hashana');
   check('Rosh Hashana: schedule', schedule($rh), implode("\n", [
     'Shabbat & Rosh Hashana candle lighting: Friday, Oct 1, 6:35 pm',
     'Rosh Hashana candle lighting: Saturday, Oct 2, after 7:30 pm',
     'Rosh Hashana ends: Sunday, Oct 3, 7:29 pm',
-    'Torah portion: Rosh Hashana 5788',
+    'Torah portion: Rosh Hashana (1st day)',
   ]));
   check('Rosh Hashana: stays on this week until Sunday night', $rh['until']->format('D H:i'), 'Sun 19:29');
 
@@ -149,7 +149,7 @@ namespace {
     'Pesach ends: Thursday, Apr 22, 7:51 pm',
     'Shabbat candle lighting: Friday, Apr 23, 6:33 pm',
     'Shabbat ends: Saturday, Apr 24, 7:52 pm',
-    'Torah portion: Pesach III (CH’’M)',
+    'Torah portion: Shabbat Chol HaMoed Pesach',
   ]));
 
   // The parsha link: only in the HTML block, never in plain text or {shabbat.parsha}.
@@ -162,6 +162,15 @@ namespace {
   check('parsha link: dates not linked', substr_count(Tokens::scheduleHtml($pesach), '<a '), 1);
   unset(Civi::$settings['hebrewcalendarhelper_shabbat_parsha_link']);
   check('parsha link: none when blank', str_contains(Tokens::scheduleHtml($regular), '<a '), FALSE);
+
+  check('readable holiday portions', array_map([Calendar::class, 'readableHoliday'], [
+    'Rosh Hashana 5787', 'Rosh Hashana II', 'Sukkot I', 'Sukkos I', 'Sukkot III (CH’’M)', "Sukkos IV (CH''M)",
+    'Shmini Atzeret', 'Simchat Torah', 'Yom Kippur', 'Pesach VII', 'Pesach VIII', 'Shavuot II', 'Shavuos II', 'פסח ג׳ (חוה״מ)', NULL,
+  ]), [
+    'Rosh Hashana (1st day)', 'Rosh Hashana (2nd day)', 'Sukkot (1st day)', 'Sukkos (1st day)', 'Shabbat Chol HaMoed Sukkot', 'Shabbat Chol HaMoed Sukkos',
+    'Shmini Atzeret', 'Simchat Torah', 'Yom Kippur', 'Pesach (7th day)', 'Pesach (8th day)', 'Shavuot (2nd day)', 'Shavuos (2nd day)', 'פסח ג׳ (חוה״מ)', NULL,
+  ]);
+  check('custom spelling overrides a readable name', week('pesach-2027-04-19', '2027-04-23', '2027-04-19 10:00', ['Shabbat Chol HaMoed Pesach' => 'Shabbos Chol HaMoed Pesach'])['parsha'], 'Shabbos Chol HaMoed Pesach');
 
   check('holiday names', array_map([Calendar::class, 'holidayName'], ['Pesach I', 'Rosh Hashana 5788', 'Sukkot VII (Hoshana Raba)', 'Shmini Atzeret']), ['Pesach', 'Rosh Hashana', 'Sukkot', 'Shmini Atzeret']);
   check('double portion respelled per part', Calendar::respell('Vayakhel-Pekudei', ['Pekudei' => 'Pekudey']), 'Vayakhel-Pekudey');

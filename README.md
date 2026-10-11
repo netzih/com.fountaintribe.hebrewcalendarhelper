@@ -35,7 +35,7 @@ These cover the coming Shabbat, and any Yom Tov during the week or joined to Sha
 | `{shabbat.schedule}` | Every candle lighting and end time until Shabbat ends, plus the Torah portion, as a block that takes on the surrounding style (lines or a table) |
 | `{shabbat.candle_lighting}` / `_date` / `_time` | Friday, Oct 9, 6:22 pm |
 | `{shabbat.ends}` / `_date` / `_time` | Saturday, Oct 10, 7:18 pm |
-| `{shabbat.parsha}` | Bereishit (or the holiday's name) |
+| `{shabbat.parsha}` | Bereishit; on a holiday Shabbat with no weekly portion, the day's name, such as "Shabbat Chol HaMoed Pesach", "Sukkot (1st day)" or "Rosh Hashana (1st day)" (rename with Custom spellings) |
 | `{shabbat.holiday}` | Pesach (blank in an ordinary week) |
 | `{shabbat.location}` | Richmond |
 | `{shabbat.time1}` … `{shabbat.time5}`, each with `_label`, `_date`, `_time` | The lines of the schedule, for your own layout |
@@ -47,7 +47,7 @@ Pesach candle lighting: Wednesday, Apr 21, 7:32 pm
 Pesach candle lighting: Thursday, Apr 22, after 8:33 pm
 Shabbat candle lighting: Friday, Apr 23, 7:34 pm
 Shabbat ends: Saturday, Apr 24, 8:35 pm
-Torah portion: Pesach III (CH''M)
+Torah portion: Shabbat Chol HaMoed Pesach
 ```
 
 ### Yahrzeits for this mourner: `{yahrzeit.PART___WINDOW}`
