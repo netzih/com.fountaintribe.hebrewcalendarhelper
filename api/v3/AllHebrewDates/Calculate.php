@@ -131,12 +131,13 @@ function civicrm_api3_all_hebrew_dates_calculate($params) {
 			// no need to truncate table, as we will do a surgical update for the impacted contacts.
 			// we do need to remove any records for these deceased contacts.
 			$sql_cleanup = "delete FROM $yahrzeit_table_name WHERE deceased_contact_id IN ($tmp_contact_ids)";
+			$dao = CRM_Core_DAO::executeQuery( $sql_cleanup ) ;
+			$fill_table_name = $yahrzeit_table_name;
 		}else{
-			// clean temp table
-			$sql_cleanup = "TRUNCATE TABLE $yahrzeit_table_name";
-		}			
-		$dao = CRM_Core_DAO::executeQuery( $sql_cleanup ) ;
-		$dao->free();
+			// Fill an empty copy and swap it in at the end, so mailings and searches never see
+			// an empty table while this runs.
+			$fill_table_name = \Civi\Hebrewcalendarhelper\Yahrzeits::createStaging();
+		}
 		
 		
 		$rtn_data = $tmpHebCal->scrubDeceasedCalculatedFields( $tmp_contact_ids  );
@@ -151,9 +152,9 @@ function civicrm_api3_all_hebrew_dates_calculate($params) {
 		}else{
 			
 			//CRM_Core_Error::debug("About to do fill table: ".$tmp_contact_ids, "");
-				$rtn_data = fillYahrzeitTempTable( $tmpHebCal, $extended_date_table , $yahrzeit_table_name, $tmp_contact_ids   );
+				$rtn_data = fillYahrzeitTempTable( $tmpHebCal, $extended_date_table , $fill_table_name, $tmp_contact_ids   );
 			//	CRM_Core_Error::debug("About to do parasha: ".$tmp_contact_ids, "");
-				$parashat_rtn = $tmpHebCal->fillYahrzeitParashat($tmp_contact_ids );
+				$parashat_rtn = $tmpHebCal->fillYahrzeitParashat($tmp_contact_ids, $fill_table_name);
 			
 				$rtn_data['record_count_birthdays'] = $record_count_birthdays; 
 				
@@ -165,6 +166,10 @@ function civicrm_api3_all_hebrew_dates_calculate($params) {
 					throw new CRM_Core_Exception("Error: ".$rtn_data['error_message'],  1234);
 					
 				}else{
+					// Only a complete rebuild replaces the live table.
+					if ($fill_table_name !== $yahrzeit_table_name) {
+						\Civi\Hebrewcalendarhelper\Yahrzeits::swapInStaging($fill_table_name);
+					}
 				 	$returnValues =  $rtn_data ; 
 					return civicrm_api3_create_success($returnValues, $params, 'AllHebrewDates', 'calculate');
 				}

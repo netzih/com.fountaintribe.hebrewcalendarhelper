@@ -33,7 +33,7 @@
        </div>
        
        <div id="specific_dates"> <label>Specific Dates: (Start/End)</label>
-        {include file="CRM/common/jcalendar.tpl" elementName='start_date'}{include file="CRM/common/jcalendar.tpl" elementName='end_date'}</div>
+        {$form.start_date.html}{$form.end_date.html}</div>
         
        <div id="hebrew_month_year"> <label>Hebrew Calendar: (Year/Month)</label>
             {$form.hebrew_year_choice.html} {$form.hebrew_month_choice.html}
@@ -74,7 +74,7 @@
            
         <tr id="specific_dates" class="specific_dates">
         <td><label>Specific Dates: (Start/End)</label></td>
-        <td>{include file="CRM/common/jcalendar.tpl" elementName='start_date'}</td><td>{include file="CRM/common/jcalendar.tpl" elementName='end_date'}</td></tr>    
+        <td>{$form.start_date.html}</td><td>{$form.end_date.html}</td></tr>    
             
             
             
@@ -162,7 +162,7 @@
                 <tr class="crm-contact-custom-search-form-row-{$element}">
                     <td class="label">{$form.$element.label}</td>
                     {if $element|strstr:'_date'}
-                        <td>{include file="CRM/common/jcalendar.tpl" elementName=$element}</td>
+                        <td>{$form.$element.html}</td>
                     {else}
                         <td>{$form.$element.html}</td>
                     {/if}

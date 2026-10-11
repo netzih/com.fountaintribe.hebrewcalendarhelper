@@ -522,7 +522,7 @@ class HebrewCalendar{
 	
 	
 	// This fills in parashat and holiday info
-	function fillYahrzeitParashat(&$contact_ids ){
+	function fillYahrzeitParashat(&$contact_ids, $table = HebrewCalendar::YAHRZEIT_TEMP_TABLE_NAME){
 		// The row IDs below are collected with GROUP_CONCAT, which cuts off at 1024 bytes by default.
 		CRM_Core_DAO::executeQuery("SET SESSION group_concat_max_len = 1000000");
 		
@@ -535,7 +535,7 @@ class HebrewCalendar{
 		}
 		
 		$sql = "SELECT group_concat( id) as ids , date(yahrzeit_shabbat_morning_before) as shabbat_date , 'before' as shabbat_type
-				 FROM ".HebrewCalendar::YAHRZEIT_TEMP_TABLE_NAME.
+				 FROM ".$table.
 				" WHERE yahrzeit_shabbat_morning_before IS NOT NULL ".$sql_conids_filter.
 				"  GROUP BY yahrzeit_shabbat_morning_before
 				order by yahrzeit_shabbat_morning_before  ";
@@ -558,7 +558,7 @@ class HebrewCalendar{
 			
 			if(  strlen((string) $tmpHoliday ) > 0 ){		
 				//	$tmpParashat_cleaned = str_replace("'", "''", $tmpParashat);
-				$update_sql = "UPDATE ".HebrewCalendar::YAHRZEIT_TEMP_TABLE_NAME."
+				$update_sql = "UPDATE ".$table."
 						set shabbat_before_holiday = %1,
 						 shabbat_before_holiday_hebrew = %2
 						       WHERE id IN ( ".$row_ids_raw." ) ";
@@ -579,7 +579,7 @@ class HebrewCalendar{
 			if( strlen((string) $tmpParashat ) > 0  ){
 				
 			//	$tmpParashat_cleaned = str_replace("'", "''", $tmpParashat);
-				$update_sql = "UPDATE ".HebrewCalendar::YAHRZEIT_TEMP_TABLE_NAME." 
+				$update_sql = "UPDATE ".$table." 
 						set shabbat_before_parashat = %1 
 						       WHERE id IN ( ".$row_ids_raw." ) ";			
 				
@@ -597,7 +597,7 @@ class HebrewCalendar{
 			if( strlen((string) $tmpParashatHebrew ) > 0 ){
 			
 				//	$tmpParashat_cleaned = str_replace("'", "''", $tmpParashat);
-				$update_sql = "UPDATE ".HebrewCalendar::YAHRZEIT_TEMP_TABLE_NAME." set shabbat_before_parashat_hebrew = %1
+				$update_sql = "UPDATE ".$table." set shabbat_before_parashat_hebrew = %1
 						       WHERE id IN ( ".$row_ids_raw." ) ";
 			
 				$params_a = [];
@@ -618,7 +618,7 @@ class HebrewCalendar{
 		
 		
 		$sql = "SELECT group_concat( id) as ids , date(yahrzeit_shabbat_morning_after) as shabbat_date , 'after' as shabbat_type
-				FROM ".HebrewCalendar::YAHRZEIT_TEMP_TABLE_NAME.
+				FROM ".$table.
 				" WHERE yahrzeit_shabbat_morning_after IS NOT NULL ".$sql_conids_filter.
 				" GROUP BY yahrzeit_shabbat_morning_after
 				 order by yahrzeit_shabbat_morning_after";
@@ -640,7 +640,7 @@ class HebrewCalendar{
 			$tmpHolidayHebrew = HebrewCalendar::getHolidayByDateHebrew($shabbat_date);
 			if(  strlen((string) $tmpHoliday ) > 0 ){
 				//	$tmpParashat_cleaned = str_replace("'", "''", $tmpParashat);
-				$update_sql = "UPDATE ".HebrewCalendar::YAHRZEIT_TEMP_TABLE_NAME."
+				$update_sql = "UPDATE ".$table."
 						set shabbat_after_holiday = %1 , 
 						shabbat_after_holiday_hebrew = %2
 						       WHERE id IN ( ".$row_ids_raw." ) ";
@@ -661,7 +661,7 @@ class HebrewCalendar{
 			if( strlen((string) $tmpParashat ) > 0 ){
 		
 				$tmpParashat_cleaned = str_replace("'", "''", $tmpParashat);
-				$update_sql = "UPDATE ".HebrewCalendar::YAHRZEIT_TEMP_TABLE_NAME." set shabbat_after_parashat = '$tmpParashat_cleaned'
+				$update_sql = "UPDATE ".$table." set shabbat_after_parashat = '$tmpParashat_cleaned'
 				WHERE id IN ( ".$row_ids_raw." ) ";
 				$update_dao = CRM_Core_DAO::executeQuery( $update_sql ) ;
 				$update_dao->free();
@@ -673,7 +673,7 @@ class HebrewCalendar{
 			if( strlen((string) $tmpParashatHebrew ) > 0 ){
 					
 				//	$tmpParashat_cleaned = str_replace("'", "''", $tmpParashat);
-				$update_sql = "UPDATE ".HebrewCalendar::YAHRZEIT_TEMP_TABLE_NAME." set shabbat_after_parashat_hebrew = %1
+				$update_sql = "UPDATE ".$table." set shabbat_after_parashat_hebrew = %1
 						       WHERE id IN ( ".$row_ids_raw." ) ";
 					
 				$params_a = [];
@@ -981,7 +981,7 @@ class HebrewCalendar{
 		yahrzeit_relationship_id varchar(25),
 		created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 		PRIMARY KEY (`id`))
-                ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ";
+                ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ";
 		
 
 

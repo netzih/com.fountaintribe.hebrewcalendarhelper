@@ -1,0 +1,10 @@
+<div af-fieldset="">
+  <div class="af-container af-layout-inline">
+    <af-field name="yahrzeit.yahrzeit_date" defn="{label: 'Yahrzeit', input_type: 'Select', search_range: true, options: [{id: 'this.week', label: 'This week'}, {id: 'next.week', label: 'Next week'}, {id: 'starting.week', label: 'Next 7 days'}, {id: 'starting.month', label: 'Next 30 days'}, {id: 'this.month', label: 'This calendar month'}, {id: 'next.month', label: 'Next calendar month'}, {id: 'starting.year', label: 'Next 12 months'}, {id: 'this.year', label: 'This calendar year'}, {id: 'next.year', label: 'Next calendar year'}], afform_default: 'starting.month'}" />
+    <af-field name="yahrzeit.yahrzeit_hebrew_month" defn="{label: 'Hebrew Month', input_attrs: {multiple: true}}" />
+    <af-field name="groups" defn="{label: 'Mourner in Group', input_attrs: {multiple: true}}" />
+    <af-field name="yahrzeit.deceased_name" defn="{label: 'In Memory Of', required: false}" />
+    <af-field name="sort_name" defn="{label: 'Mourner'}" />
+  </div>
+  <crm-search-display-table search-name="Hebrewcalendarhelper_Yahrzeits" display-name="Hebrewcalendarhelper_Yahrzeits_Table"></crm-search-display-table>
+</div>

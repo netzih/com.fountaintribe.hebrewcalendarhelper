@@ -90,7 +90,8 @@ CRM_Contact_Form_Search_Custom_Base implements CRM_Contact_Form_Search_Interface
   
   	 
   
-  	$row['deceased_name'] = "<a href='/civicrm/contact/view?reset=1&cid=".$row['deceased_contact_id']."'>".$row['deceased_name']."</a>";
+  	$url = CRM_Utils_System::url('civicrm/contact/view', ['reset' => 1, 'cid' => (int) $row['deceased_contact_id']]);
+  	$row['deceased_name'] = '<a href="' . htmlspecialchars($url) . '">' . htmlspecialchars((string) $row['deceased_name']) . '</a>';
   	 
   }
   
@@ -112,9 +113,9 @@ CRM_Contact_Form_Search_Custom_Base implements CRM_Contact_Form_Search_Interface
   
   
   
-  	$form->addDate('start_date', ts('Date From'), false, [ 'formatType' => 'custom' ] );
+  	$form->add('datepicker', 'start_date', ts('Date From'), [], FALSE, ['time' => FALSE]);
   
-  	$form->addDate('end_date', ts('...Through'), false, [ 'formatType' => 'custom' ] );
+  	$form->add('datepicker', 'end_date', ts('...Through'), [], FALSE, ['time' => FALSE]);
   
   	
   	
@@ -892,19 +893,19 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
           	$hebrew_year_choice = $this->_formValues['hebrew_year_choice'];
           	
           	if( strlen((string) $hebrew_year_choice) > 0){
-          		$clauses[] =  $hebrew_year_sql_field_name."  =  ".$hebrew_year_choice; 
+          		$clauses[] =  $hebrew_year_sql_field_name."  =  ".(int) $hebrew_year_choice; 
           	}
           	
           	// 'hebrew_month_choice'
           	$hebrew_month_choice = $this->_formValues['hebrew_month_choice'];
           	 
           	if( strlen((string) $hebrew_month_choice) > 0){
-          		$clauses[] =  $hebrew_month_sql_field_name." =  ".$hebrew_month_choice;
+          		$clauses[] =  $hebrew_month_sql_field_name." =  ".(int) $hebrew_month_choice;
           	}
     }else if( $date_range_ui  == "specific_dates" ){
         // only check start_date and end_date if the user chose 'specific_dates'    
         if( isset( $this->_formValues['start_date'])){
-  		    $startDate = CRM_Utils_Date::processDate( $this->_formValues['start_date'] );
+  		    $startDate = CRM_Utils_Rule::date($this->_formValues['start_date']) ? "'" . date('Y-m-d', strtotime($this->_formValues['start_date'])) . "'" : '';
         }else{
    		    $startDate = "";
         }
@@ -916,7 +917,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
       	}
       
       	if(isset( $this->_formValues['end_date'])){
-      		$endDate = CRM_Utils_Date::processDate( $this->_formValues['end_date'] );
+      		$endDate = CRM_Utils_Rule::date($this->_formValues['end_date']) ? "'" . date('Y-m-d', strtotime($this->_formValues['end_date'])) . " 23:59:59'" : '';
       	}else{
       		$endDate = "";
       	}
@@ -1102,7 +1103,7 @@ $form->addGroup($date_ui_choices, 'date_range_ui', ts('sample'));
     }
   
     if( strlen((string) $comm_prefs ) > 0 ){
-    	$clauses[] = "contact_a.preferred_communication_method = '".$comm_prefs."' "; 	
+    	$clauses[] = "contact_a.preferred_communication_method = '" . CRM_Core_DAO::escapeString($comm_prefs) . "' "; 	
     }
   
 
