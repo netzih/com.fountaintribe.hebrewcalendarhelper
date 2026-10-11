@@ -2,7 +2,7 @@
 <extension key="com.fountaintribe.hebrewcalendarhelper" type="module">
   <file>hebrewcalendarhelper</file>
   <name>Hebrew Calendar Helper</name>
-  <description>Has a variety of functionality related to the Hebrew calendar. This includes mail merge tokens, demographic information, Hebrew date of birth, yahrzeits, APIs and more</description>
+  <description>Hebrew calendar tools for CiviCRM: Hebrew dates of birth and death, yahrzeits and bar/bat mitzvah dates, a Yahrzeits search, and mail tokens for yahrzeits, today's Hebrew date and this week's Shabbat and Yom Tov times.</description>
   <license>AGPL-3.0</license>
   <maintainer>
     <author>Sarah Gladstone</author>
@@ -18,7 +18,7 @@
   <version>4.1.0-alpha1</version>
   <develStage>alpha</develStage>
   <compatibility>
-    <ver>5.45</ver>
+    <ver>5.78</ver>
   </compatibility>
   <comments/>
   <civix>
