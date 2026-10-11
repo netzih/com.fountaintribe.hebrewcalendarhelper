@@ -23,10 +23,10 @@ return [
     'type' => 'String',
     'html_type' => 'select',
     'options' => [
-      'adar2' => ts('Adar II'),
       'adar1' => ts('Adar I'),
+      'adar2' => ts('Adar II'),
     ],
-    'default' => 'adar2',
+    'default' => 'adar1',
     'is_domain' => 1,
     'is_contact' => 0,
     'title' => ts('Yahrzeit in a leap year, for a death in Adar of a regular year'),

@@ -21,7 +21,7 @@ Older documentation is at https://github.com/sgladstone/com.fountaintribe.hebrew
   - **Times:** candle lighting minutes, and how the end of Shabbat is calculated.
   - **Display:** the parsha transliteration and custom spellings, and date and time formats picked from examples.
   - **Preview:** a box shows this week's tokens, and you can preview any other week.
-- **Yahrzeits:** in a leap year, which Adar holds the yahrzeit of someone who passed away in Adar of a regular year. The default is Adar II, as before. Customs differ.
+- **Yahrzeits:** in a leap year, which Adar holds the yahrzeit of someone who passed away in Adar of a regular year. The default is Adar I; versions before 4.1 always used Adar II. Customs differ.
 - **Birthdays:** the earliest bat mitzvah age, 12 or 13. The default is 13.
 
 ## Tokens
@@ -160,7 +160,7 @@ For example:
 - Search > Yahrzeits in SearchKit.
 - The Yahrzeit APIv4 entity.
 - Deceased Hebrew name tokens.
-- The Adar yahrzeit setting.
+- The Adar yahrzeit setting. The default is now Adar I, so yahrzeits in a leap year for deaths in Adar of a regular year move from Adar II to Adar I; choose Adar II to keep the old dates.
 
 **Fixes:**
 - **CiviCRM 6:**

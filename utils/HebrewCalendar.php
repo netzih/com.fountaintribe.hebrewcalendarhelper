@@ -2547,10 +2547,10 @@ class HebrewCalendar{
 						// Adar (non-leap) birthdays are observed in AdarII. 
 						$tmp_hmonth = HebrewCalendar::HEBREW_MONTH_ADAR_2;
 					}else if( $purpose == "yahrzeit" ){
-						// Customs differ: the setting chooses Adar I or Adar II (the default, as before).
-						$tmp_hmonth = \Civi::settings()->get('hebrewcalendarhelper_yahrzeit_adar') === 'adar1'
-							? HebrewCalendar::HEBREW_MONTH_ADAR
-							: HebrewCalendar::HEBREW_MONTH_ADAR_2;
+						// Customs differ: the setting chooses Adar I (the default) or Adar II.
+						$tmp_hmonth = \Civi::settings()->get('hebrewcalendarhelper_yahrzeit_adar') === 'adar2'
+							? HebrewCalendar::HEBREW_MONTH_ADAR_2
+							: HebrewCalendar::HEBREW_MONTH_ADAR;
 					}
 					
 	
