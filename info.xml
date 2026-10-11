@@ -10,13 +10,13 @@
   </maintainer>
   <urls>
     <url desc="Main Extension Page">https://civicrm.org/extensions/hebrew-calendar</url>
-    <url desc="Documentation">https://github.com/sgladstone/com.fountaintribe.hebrewcalendarhelper/wiki</url>
-    <url desc="Support">https://github.com/sgladstone/com.fountaintribe.hebrewcalendarhelper/issues</url>
+    <url desc="Documentation">https://lab.civicrm.org/Chabadrichmond/hebrewcalendarhelper/-/blob/master/README.md</url>
+    <url desc="Support">https://lab.civicrm.org/Chabadrichmond/hebrewcalendarhelper/-/issues</url>
     <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
-  <releaseDate>2019-09-15</releaseDate>
-  <version>4.1.0-alpha1</version>
-  <develStage>alpha</develStage>
+  <releaseDate>2026-10-10</releaseDate>
+  <version>4.1.0-beta1</version>
+  <develStage>beta</develStage>
   <compatibility>
     <ver>5.78</ver>
   </compatibility>
