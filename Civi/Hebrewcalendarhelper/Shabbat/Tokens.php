@@ -140,7 +140,13 @@ class Tokens implements EventSubscriberInterface {
       ];
     }
     if ($withParsha && !empty($week['parsha'])) {
-      $lines[] = ['label' => E::ts('Torah portion'), 'date' => $week['parsha'], 'time' => ''];
+      $lines[] = [
+        'label' => E::ts('Torah portion'),
+        'date' => $week['parsha'],
+        'time' => '',
+        // The HTML block links the portion here when a link is set.
+        'url' => trim((string) \Civi::settings()->get('hebrewcalendarhelper_shabbat_parsha_link')),
+      ];
     }
     return $lines;
   }
@@ -155,12 +161,16 @@ class Tokens implements EventSubscriberInterface {
       return '';
     }
     $h = fn(string $text) => htmlspecialchars($text, ENT_QUOTES);
+    // The middle value (a date, or the portion's name), linked if the line has a link.
+    $value = fn(array $line) => empty($line['url'])
+      ? $h($line['date'])
+      : '<a href="' . $h($line['url']) . '">' . $h($line['date']) . '</a>';
 
     if (\Civi::settings()->get('hebrewcalendarhelper_shabbat_schedule_layout') === 'table') {
       $rows = '';
       foreach ($lines as $line) {
         $rows .= '<tr><td style="padding:2px 16px 2px 0;font-weight:bold;vertical-align:top">' . $h($line['label']) . '</td>'
-          . '<td style="padding:2px 16px 2px 0;vertical-align:top">' . $h($line['date']) . '</td>'
+          . '<td style="padding:2px 16px 2px 0;vertical-align:top">' . $value($line) . '</td>'
           . '<td style="padding:2px 0;vertical-align:top">' . $h($line['time']) . '</td></tr>';
       }
       return '<table class="shabbat-schedule" role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse">' . $rows . '</table>';
@@ -168,10 +178,21 @@ class Tokens implements EventSubscriberInterface {
 
     $html = '';
     foreach ($lines as $line) {
-      $html .= '<div><strong>' . $h($line['label']) . ':</strong> ' . $h($line['date'])
+      $html .= '<div><strong>' . $h($line['label']) . ':</strong> ' . $value($line)
         . ($line['time'] === '' ? '' : ', ' . $h($line['time'])) . '</div>';
     }
     return '<div class="shabbat-schedule">' . $html . '</div>';
+  }
+
+  /**
+   * validate_callback for the parsha link: blank, or a web address.
+   */
+  public static function validateLink(&$value, array $meta): bool {
+    $value = trim((string) $value);
+    if ($value !== '' && !preg_match('#^https?://[^\s"<>]+$#i', $value)) {
+      throw new \CRM_Core_Exception(E::ts('Enter a web address starting with https:// or http://, or leave it blank.'));
+    }
+    return TRUE;
   }
 
   private static function date(\DateTimeInterface $time): string {

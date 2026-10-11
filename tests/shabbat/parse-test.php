@@ -152,6 +152,17 @@ namespace {
     'Torah portion: Pesach III (CH’’M)',
   ]));
 
+  // The parsha link: only in the HTML block, never in plain text or {shabbat.parsha}.
+  Civi::$settings['hebrewcalendarhelper_shabbat_parsha_link'] = 'https://www.chabad.org/parsha';
+  check('parsha link: HTML lines', str_contains(Tokens::scheduleHtml($regular), '<strong>Torah portion:</strong> <a href="https://www.chabad.org/parsha">Bereishit</a></div>'), TRUE);
+  Civi::$settings['hebrewcalendarhelper_shabbat_schedule_layout'] = 'table';
+  check('parsha link: HTML table', str_contains(Tokens::scheduleHtml($regular), '<a href="https://www.chabad.org/parsha">Bereishit</a></td>'), TRUE);
+  unset(Civi::$settings['hebrewcalendarhelper_shabbat_schedule_layout']);
+  check('parsha link: not in text', [str_contains(Tokens::values($regular)['schedule'], 'http'), Tokens::values($regular)['parsha']], [FALSE, 'Bereishit']);
+  check('parsha link: dates not linked', substr_count(Tokens::scheduleHtml($pesach), '<a '), 1);
+  unset(Civi::$settings['hebrewcalendarhelper_shabbat_parsha_link']);
+  check('parsha link: none when blank', str_contains(Tokens::scheduleHtml($regular), '<a '), FALSE);
+
   check('holiday names', array_map([Calendar::class, 'holidayName'], ['Pesach I', 'Rosh Hashana 5788', 'Sukkot VII (Hoshana Raba)', 'Shmini Atzeret']), ['Pesach', 'Rosh Hashana', 'Sukkot', 'Shmini Atzeret']);
   check('double portion respelled per part', Calendar::respell('Vayakhel-Pekudei', ['Pekudei' => 'Pekudey']), 'Vayakhel-Pekudey');
   check('overrides parsed', Calendar::parseOverrides("Bereshit = Bereishit\n\nbad line\nNoach=Noach "), ['Bereshit' => 'Bereishit', 'Noach' => 'Noach']);
